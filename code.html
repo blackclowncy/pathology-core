@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Pathology Core - Specimen Registration</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-container": "#00424f",
+                        "inverse-primary": "#00687a",
+                        "on-background": "#dae2fd",
+                        "outline-variant": "#3d494c",
+                        "on-surface-variant": "#bcc9cd",
+                        "error-container": "#93000a",
+                        "secondary-container": "#00a572",
+                        "primary-fixed-dim": "#4cd7f6",
+                        "surface-container-lowest": "#060e20",
+                        "secondary-fixed": "#6ffbbe",
+                        "surface-tint": "#4cd7f6",
+                        "on-secondary-container": "#00311f",
+                        "primary-container": "#06b6d4",
+                        "surface-container-highest": "#2d3449",
+                        "surface": "#0b1326",
+                        "error": "#ffb4ab",
+                        "tertiary-fixed": "#ffdadb",
+                        "surface-container-low": "#131b2e",
+                        "background": "#0b1326",
+                        "on-secondary-fixed-variant": "#005236",
+                        "inverse-on-surface": "#283044",
+                        "on-tertiary-fixed-variant": "#92002a",
+                        "on-error": "#690005",
+                        "on-tertiary": "#67001b",
+                        "on-error-container": "#ffdad6",
+                        "primary-fixed": "#acedff",
+                        "on-primary-fixed": "#001f26",
+                        "surface-variant": "#2d3449",
+                        "on-tertiary-container": "#7d0023",
+                        "tertiary-container": "#ff7f8b",
+                        "tertiary": "#ffb2b7",
+                        "surface-bright": "#31394d",
+                        "tertiary-fixed-dim": "#ffb2b7",
+                        "surface-dim": "#0b1326",
+                        "outline": "#869397",
+                        "on-secondary-fixed": "#002113",
+                        "secondary-fixed-dim": "#4edea3",
+                        "on-tertiary-fixed": "#40000d",
+                        "on-primary": "#003640",
+                        "secondary": "#4edea3",
+                        "on-surface": "#dae2fd",
+                        "on-primary-fixed-variant": "#004e5c",
+                        "primary": "#4cd7f6",
+                        "inverse-surface": "#dae2fd",
+                        "surface-container": "#171f33",
+                        "surface-container-high": "#222a3d",
+                        "on-secondary": "#003824"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "sm": "12px",
+                        "lg": "24px",
+                        "xs": "4px",
+                        "margin-mobile": "16px",
+                        "gutter": "20px",
+                        "base": "8px",
+                        "margin-desktop": "40px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "mono-data": ["JetBrains Mono"],
+                        "headline-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "mono-data": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                },
+            }
+        }
+    </script>
+<style>
+        body { background-color: #0F172A; } /* Fallback background, theme uses surface */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid #334155;
+        }
+        .organ-icon-btn.selected {
+            border-color: theme('colors.primary');
+            background: rgba(6, 182, 212, 0.1);
+            color: theme('colors.primary');
+        }
+        .glow-shadow {
+            box-shadow: 0px 4px 20px rgba(6, 182, 212, 0.15);
+        }
+        .input-clinical {
+            background-color: #0F172A;
+            border: 1px solid #334155;
+            color: #FFFFFF; /* High contrast text */
+            transition: all 0.2s;
+        }
+        .input-clinical::placeholder {
+            color: #94A3B8; /* Lighter placeholder */
+        }
+        .input-clinical:focus {
+            border-color: theme('colors.primary');
+            box-shadow: 0 0 0 1px theme('colors.primary'), 0 0 10px rgba(6, 182, 212, 0.2);
+            outline: none;
+        }
+        /* Hide scrollbar for clean look */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        
+        .checkbox-clinical {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 1px solid #334155;
+            border-radius: 4px;
+            background-color: #0F172A;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .checkbox-clinical:checked {
+            background-color: theme('colors.primary');
+            border-color: theme('colors.primary');
+        }
+        .checkbox-clinical:checked::after {
+            content: '\e5ca'; /* Material Symbols check */
+            font-family: 'Material Symbols Outlined';
+            color: theme('colors.on-primary');
+            font-size: 14px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md text-body-md overflow-hidden selection:bg-primary-container selection:text-on-primary-container h-screen flex">
+<!-- SideNavBar -->
+<nav class="bg-surface dark:bg-surface text-primary dark:text-primary font-body-md text-body-md fixed left-0 top-0 h-full w-[240px] border-r border-outline-variant dark:border-outline-variant flex flex-col py-lg px-md z-40 hidden md:flex">
+<div class="mb-xl flex flex-col gap-sm items-start">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary text-[32px]">biotech</span>
+<span class="font-headline-md text-headline-md text-primary dark:text-primary font-bold tracking-tight">Pathology Core</span>
+</div>
+<div class="flex items-center gap-xs text-on-surface-variant font-label-md text-label-md">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span>Lab ID: 772-B</span>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-primary-fixed text-on-primary font-label-md text-label-md py-sm px-md rounded-lg flex items-center justify-center gap-sm mb-xl transition-colors shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+<span class="material-symbols-outlined text-[18px]">add</span>
+            New Specimen
+        </button>
+<ul class="flex flex-col gap-xs flex-1">
+<li>
+<a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                    Dashboard
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-md py-sm px-md rounded-lg text-primary dark:text-primary border-r-2 border-primary bg-surface-container-high/50" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">biotech</span>
+                    Register
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+                    Archive
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+                    Settings
+                </a>
+</li>
+</ul>
+<div class="mt-auto pt-lg border-t border-outline-variant/50">
+<ul class="flex flex-col gap-xs">
+<li>
+<a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors text-sm" href="#">
+<span class="material-symbols-outlined text-[18px]">help_outline</span>
+                        Support
+                    </a>
+</li>
+<li>
+<a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors text-sm" href="#">
+<span class="material-symbols-outlined text-[18px]">logout</span>
+                        Sign Out
+                    </a>
+</li>
+</ul>
+</div>
+</nav>
+<!-- Main Content Wrapper -->
+<div class="flex-1 md:ml-[240px] flex flex-col h-full bg-surface-container-lowest">
+<!-- TopAppBar -->
+<header class="bg-surface-container dark:bg-surface-container text-primary dark:text-primary font-label-md text-label-md sticky top-0 z-30 h-auto py-sm px-lg flex flex-col gap-sm justify-center border-b border-outline-variant dark:border-outline-variant">
+<!-- Global Search & Filters Row 1 -->
+<div class="flex justify-between items-center w-full">
+<div class="flex items-center gap-md flex-1 max-w-2xl">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+<input class="w-full bg-[#0F172A] border border-[#334155] rounded-lg py-xs pl-xl pr-sm text-[#FFFFFF] text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-colors h-9 placeholder:text-[#94A3B8]" placeholder="Search Donor ID, Specimen Type, Diagnosis..." type="text"/>
+</div>
+<div class="hidden lg:flex items-center gap-sm">
+<div class="relative">
+<select class="appearance-none bg-[#0F172A] border border-[#334155] rounded-lg py-xs pl-sm pr-lg text-[#FFFFFF] text-sm h-9 focus:border-primary focus:ring-1 focus:ring-primary cursor-pointer">
+<option>Year</option>
+<option>2024</option>
+<option>2023</option>
+</select>
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[16px] pointer-events-none">expand_more</span>
+</div>
+<div class="relative">
+<select class="appearance-none bg-[#0F172A] border border-[#334155] rounded-lg py-xs pl-sm pr-lg text-[#FFFFFF] text-sm h-9 focus:border-primary focus:ring-1 focus:ring-primary cursor-pointer">
+<option>Organ Type</option>
+<option>Liver</option>
+<option>Kidney</option>
+<option>Lung</option>
+<option>Spleen</option>
+<option>Other</option>
+</select>
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[16px] pointer-events-none">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Actions & Profile -->
+<div class="flex items-center gap-lg">
+<div class="hidden md:flex items-center gap-md">
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary transition-colors" href="#">Lab Analytics</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary transition-colors" href="#">Resource Manager</a>
+</div>
+<div class="flex items-center gap-sm border-l border-outline-variant pl-lg ml-sm">
+<button class="text-on-surface-variant hover:text-primary transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border border-surface-container"></span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">history</span>
+</button>
+<button class="bg-error/10 text-error hover:bg-error/20 border border-error/30 px-sm py-xs rounded text-xs font-bold uppercase tracking-wider ml-sm transition-colors">
+                        Emergency Log
+                    </button>
+<div class="w-8 h-8 rounded-full overflow-hidden ml-md border-2 border-outline-variant hover:border-primary transition-colors cursor-pointer">
+<img alt="Pathologist Portrait" class="w-full h-full object-cover" data-alt="A professional portrait of a medical pathologist in a clinical lab setting, dark mode aesthetic with cool cyan lighting accents. The lighting highlights their focused expression." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRN3y3HLc7R3kvx0_TjauE59FPhgewDG2LcjqwC2WlGUH_TmrieMeYy4GcNXMvRKubMPtFFFWbuHPKIdeI7V_SqSyZ2ElEEY7V1IK5ebfdDWjLfWRFo2Fxm_GoMQ5wrR0VUYsMG-rHNMAxB6UeBBOs8feKc8v87_JkuBa3twVYFRyYxBkgG7YfBW5qwrDJ25Y2NM1Ti8sVUHi8kn2QdrqU_RGe3KB1511_p7NZ5YjaMJcpxiZIpTX5QKSAdQ92ij0Cxg6F2ciqasY"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Global Search & Filters Row 2 (Advanced) -->
+<div class="hidden lg:flex items-center gap-sm w-full max-w-5xl">
+<div class="relative flex-1">
+<select class="appearance-none w-full bg-[#0F172A] border border-[#334155] rounded-lg py-xs pl-sm pr-lg text-[#FFFFFF] text-sm h-9 focus:border-primary focus:ring-1 focus:ring-primary cursor-pointer">
+<option value="">Gender</option>
+<option value="M">Male</option>
+<option value="F">Female</option>
+<option value="O">Other</option>
+</select>
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[16px] pointer-events-none">expand_more</span>
+</div>
+<div class="relative flex-1">
+<input class="w-full bg-[#0F172A] border border-[#334155] rounded-lg py-xs px-sm text-[#FFFFFF] text-sm h-9 focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-[#94A3B8]" placeholder="Age Range (e.g. 40-60)" type="text"/>
+</div>
+<div class="relative flex-1">
+<input class="w-full bg-[#0F172A] border border-[#334155] rounded-lg py-xs px-sm text-[#FFFFFF] text-sm h-9 focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-[#94A3B8]" placeholder="BMI Range" type="text"/>
+</div>
+<div class="relative flex-[1.5]">
+<select class="appearance-none w-full bg-[#0F172A] border border-[#334155] rounded-lg py-xs pl-sm pr-lg text-[#FFFFFF] text-sm h-9 focus:border-primary focus:ring-1 focus:ring-primary cursor-pointer">
+<option value="">Diagnosis/History</option>
+<option value="HTN">Chronic Hypertension (HTN)</option>
+<option value="Diabetes">Diabetes Mellitus</option>
+<option value="CAD">Coronary Artery Disease (CAD)</option>
+<option value="COPD">Chronic Obstructive Pulmonary Disease (COPD)</option>
+<option value="Obesity">Clinical Obesity</option>
+<option value="CKD">Chronic Kidney Disease (CKD)</option>
+<option value="Liver">Decompensated Liver Cirrhosis</option>
+<option value="Tobacco">Tobacco / Smoking / Nicotine Abuse</option>
+<option value="Alcohol">Alcohol Consumption</option>
+<option value="Drugs">Intravenous and Non-Intravenous Drug Abuse</option>
+</select>
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[16px] pointer-events-none">expand_more</span>
+</div>
+<div class="relative flex-1">
+<select class="appearance-none w-full bg-[#0F172A] border border-[#334155] rounded-lg py-xs pl-sm pr-lg text-[#FFFFFF] text-sm h-9 focus:border-primary focus:ring-1 focus:ring-primary cursor-pointer">
+<option value="">Cold Ischemia Time</option>
+<option value="&lt;2h">&lt; 2 hours</option>
+<option value="2-4h">2 - 4 hours</option>
+<option value="&gt;4h">&gt; 4 hours</option>
+</select>
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[16px] pointer-events-none">expand_more</span>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-1 overflow-y-auto p-lg lg:p-xl custom-scrollbar flex flex-col xl:flex-row gap-lg xl:gap-xl">
+<!-- Left Column: Registration Form (Bento Grid Style) -->
+<div class="flex-1 flex flex-col gap-lg max-w-[1200px]">
+<div class="flex items-center justify-between">
+<h1 class="font-headline-sm text-headline-sm font-bold text-on-surface">Specimen Registration</h1>
+<span class="font-mono-data text-mono-data text-on-surface-variant bg-surface-container-high px-sm py-xs rounded border border-outline-variant">T-ID: auto-generated</span>
+</div>
+<div class="glass-panel rounded-xl p-lg lg:p-xl glow-shadow relative overflow-hidden">
+<!-- Subtle background decoration -->
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
+<form class="grid grid-cols-1 md:grid-cols-12 gap-lg relative z-10">
+<!-- Col 1: Organ Type -->
+<div class="md:col-span-12 xl:col-span-4 flex flex-col gap-sm">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Organ Type</label>
+<div class="grid grid-cols-2 gap-sm">
+<button class="organ-icon-btn selected flex flex-col items-center justify-center gap-xs p-sm rounded-lg border border-outline-variant bg-surface-container-low transition-all" type="button">
+<span class="material-symbols-outlined text-[32px] opacity-80">pulmonology</span>
+<span class="text-xs font-semibold">Lung</span>
+</button>
+<button class="organ-icon-btn flex flex-col items-center justify-center gap-xs p-sm rounded-lg border border-outline-variant bg-surface-container-low hover:border-primary/50 transition-all text-on-surface-variant" type="button">
+<span class="material-symbols-outlined text-[32px] opacity-80">cardiology</span>
+<span class="text-xs font-semibold">Heart</span>
+</button>
+<button class="organ-icon-btn flex flex-col items-center justify-center gap-xs p-sm rounded-lg border border-outline-variant bg-surface-container-low hover:border-primary/50 transition-all text-on-surface-variant" type="button">
+<span class="material-symbols-outlined text-[32px] opacity-80">fluid</span>
+<span class="text-xs font-semibold">Liver</span>
+</button>
+<button class="organ-icon-btn flex flex-col items-center justify-center gap-xs p-sm rounded-lg border border-outline-variant bg-surface-container-low hover:border-primary/50 transition-all text-on-surface-variant" type="button">
+<span class="material-symbols-outlined text-[32px] opacity-80">nephrology</span>
+<span class="text-xs font-semibold">Kidney</span>
+</button>
+<button class="organ-icon-btn flex flex-col items-center justify-center gap-xs p-sm rounded-lg border border-outline-variant bg-surface-container-low hover:border-primary/50 transition-all text-on-surface-variant" type="button">
+<span class="material-symbols-outlined text-[32px] opacity-80">prescriptions</span>
+<span class="text-xs font-semibold">Pancreas</span>
+</button>
+<button class="organ-icon-btn flex flex-col items-center justify-center gap-xs p-sm rounded-lg border border-outline-variant bg-surface-container-low hover:border-primary/50 transition-all text-on-surface-variant" type="button">
+<span class="material-symbols-outlined text-[32px] opacity-80">blood_type</span>
+<span class="text-xs font-semibold">Spleen</span>
+</button>
+<button class="organ-icon-btn flex flex-col items-center justify-center gap-xs p-sm rounded-lg border border-outline-variant bg-surface-container-low hover:border-primary/50 transition-all text-on-surface-variant" type="button">
+<span class="material-symbols-outlined text-[32px] opacity-80">airline_seat_flat</span>
+<span class="text-xs font-semibold">Intestines</span>
+</button>
+<button class="organ-icon-btn flex flex-col items-center justify-center gap-xs p-sm rounded-lg border border-outline-variant bg-surface-container-low hover:border-primary/50 transition-all text-on-surface-variant" onclick="document.getElementById('other-organ-input').classList.toggle('hidden')" type="button">
+<span class="material-symbols-outlined text-[32px] opacity-80">more_horiz</span>
+<span class="text-xs font-semibold">Other</span>
+</button>
+</div>
+<div class="hidden mt-sm" id="other-organ-input">
+<input class="input-clinical w-full rounded-md py-sm px-sm font-body-md text-sm" placeholder="Specify other organ..." type="text"/>
+</div>
+</div>
+<!-- Col 2: Core Details & Patient Info -->
+<div class="md:col-span-6 xl:col-span-8 grid grid-cols-1 xl:grid-cols-2 gap-lg bg-surface-container/30 p-md rounded-lg border border-outline-variant/30">
+<!-- Core Details -->
+<div class="flex flex-col gap-lg">
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Donor ID <span class="text-error">*</span></label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">fingerprint</span>
+<input class="input-clinical w-full rounded-md py-sm pl-xl pr-sm font-mono-data text-mono-data uppercase" placeholder="e.g. D-8839-XX" type="text"/>
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Preservation Method</label>
+<div class="flex gap-md bg-[#0F172A] p-xs rounded-md border border-[#334155]">
+<label class="flex-1 flex items-center justify-center gap-xs py-xs px-sm rounded cursor-pointer bg-primary/20 text-primary border border-primary/30">
+<input checked="" class="hidden" name="preservation" type="radio"/>
+<span class="material-symbols-outlined text-[16px]">ac_unit</span>
+<span class="text-xs font-bold">-80C Frozen</span>
+</label>
+<label class="flex-1 flex items-center justify-center gap-xs py-xs px-sm rounded cursor-pointer text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<input class="hidden" name="preservation" type="radio"/>
+<span class="material-symbols-outlined text-[16px]">science</span>
+<span class="text-xs font-bold">Fixed</span>
+</label>
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Storage Location</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">warehouse</span>
+<input class="input-clinical w-full rounded-md py-sm pl-xl pr-sm font-mono-data text-mono-data" placeholder="Sector / Rack / Box" type="text"/>
+</div>
+</div>
+</div>
+<!-- Patient Demographics -->
+<div class="flex flex-col gap-lg">
+<div class="grid grid-cols-2 gap-sm">
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Age</label>
+<input class="input-clinical w-full rounded-md py-sm px-sm font-mono-data text-mono-data" min="0" placeholder="Yrs" type="number"/>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Gender</label>
+<div class="relative">
+<select class="appearance-none input-clinical w-full rounded-md py-sm pl-sm pr-lg text-sm cursor-pointer text-[#FFFFFF]">
+<option disabled="" selected="" value="">Select</option>
+<option value="Male">Male</option>
+<option value="Female">Female</option>
+<option value="Other">Other</option>
+</select>
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[16px] pointer-events-none">expand_more</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">BMI</label>
+<div class="relative">
+<input class="input-clinical w-full rounded-md py-sm px-sm font-mono-data text-mono-data" placeholder="e.g. 24.5" step="0.1" type="number"/>
+<span class="absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-xs">kg/m²</span>
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Reason of Death</label>
+<input class="input-clinical w-full rounded-md py-sm px-sm font-body-md text-sm" placeholder="Enter cause..." type="text"/>
+</div>
+</div>
+</div>
+<!-- Col 3: Timing (Moved to new row for space) -->
+<div class="md:col-span-6 xl:col-span-12 flex flex-row flex-wrap gap-lg bg-surface-container/30 p-md rounded-lg border border-outline-variant/30">
+<div class="flex-1 flex flex-col gap-xs min-w-[150px]">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Warm Ischemia</label>
+<div class="flex items-center gap-sm h-full">
+<input class="input-clinical w-full rounded-md py-sm px-sm font-mono-data text-mono-data bg-[#0F172A]" placeholder="Mins" type="number"/>
+<label class="flex items-center gap-xs cursor-pointer whitespace-nowrap text-sm text-on-surface-variant">
+<input class="checkbox-clinical" type="checkbox"/>
+<span>N/A</span>
+</label>
+</div>
+</div>
+<div class="flex-1 flex flex-col gap-xs min-w-[200px]">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Clamp Time</label>
+<div class="relative flex items-center h-full">
+<span class="material-symbols-outlined absolute left-sm text-on-surface-variant text-[18px]">schedule</span>
+<input class="input-clinical w-full rounded-md py-sm pl-xl pr-sm font-mono-data text-mono-data bg-[#0F172A]" id="clamp-time" type="time"/>
+</div>
+</div>
+<div class="flex-1 flex flex-col gap-xs min-w-[200px]">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Collection Time</label>
+<div class="relative flex items-center h-full">
+<span class="material-symbols-outlined absolute left-sm text-on-surface-variant text-[18px]">update</span>
+<input class="input-clinical w-full rounded-md py-sm pl-xl pr-sm font-mono-data text-mono-data bg-[#0F172A]" id="collection-time" type="time"/>
+</div>
+</div>
+<div class="flex flex-col gap-xs min-w-[200px] justify-center ml-auto border-l border-outline-variant/30 pl-lg">
+<div class="flex justify-between items-center text-sm gap-md">
+<span class="text-on-surface-variant uppercase tracking-wider text-xs font-semibold">Cold Ischemia Time:</span>
+<span class="font-mono-data text-secondary text-lg font-bold" id="cold-ischemia-display">--h --min</span>
+</div>
+</div>
+</div>
+<!-- Full Width: Medical History Checkboxes & Remarks -->
+<div class="md:col-span-12 flex flex-col gap-md mt-sm bg-surface-container/20 p-md rounded-lg border border-outline-variant/20">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider border-b border-outline-variant/30 pb-xs">Medical History (Check all that apply)</label>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-sm text-sm">
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="checkbox-clinical" type="checkbox" value="HTN"/>
+<span class="group-hover:text-primary transition-colors text-on-surface">Chronic Hypertension (HTN)</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="checkbox-clinical" type="checkbox" value="Diabetes"/>
+<span class="group-hover:text-primary transition-colors text-on-surface">Diabetes Mellitus</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="checkbox-clinical" type="checkbox" value="CAD"/>
+<span class="group-hover:text-primary transition-colors text-on-surface">Coronary Artery Disease (CAD)</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="checkbox-clinical" type="checkbox" value="COPD"/>
+<span class="group-hover:text-primary transition-colors text-on-surface">Chronic Obstructive Pulmonary Disease (COPD)</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="checkbox-clinical" type="checkbox" value="Obesity"/>
+<span class="group-hover:text-primary transition-colors text-on-surface">Clinical Obesity</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="checkbox-clinical" type="checkbox" value="CKD"/>
+<span class="group-hover:text-primary transition-colors text-on-surface">Chronic Kidney Disease (CKD)</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="checkbox-clinical" type="checkbox" value="Liver"/>
+<span class="group-hover:text-primary transition-colors text-on-surface">Decompensated Liver Cirrhosis</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="checkbox-clinical" type="checkbox" value="Tobacco"/>
+<span class="group-hover:text-primary transition-colors text-on-surface">Tobacco / Smoking / Nicotine Abuse</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="checkbox-clinical" type="checkbox" value="Alcohol"/>
+<span class="group-hover:text-primary transition-colors text-on-surface">Alcohol Consumption</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group lg:col-span-2">
+<input class="checkbox-clinical" type="checkbox" value="Drugs"/>
+<span class="group-hover:text-primary transition-colors text-on-surface">Intravenous and Non-Intravenous Drug Abuse</span>
+</label>
+</div>
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mt-md">Manual Remarks</label>
+<textarea class="input-clinical w-full rounded-md p-sm text-sm resize-y font-body-md" placeholder="Enter clinical notes, visible abnormalities, or special handling instructions..." rows="2"></textarea>
+</div>
+<!-- Action -->
+<div class="md:col-span-12 mt-md flex justify-end gap-md items-center border-t border-outline-variant/50 pt-lg">
+<button class="px-lg py-sm text-on-surface-variant hover:text-on-surface transition-colors font-label-md text-label-md uppercase tracking-wider" type="button">
+                                Clear Form
+                            </button>
+<button class="bg-primary hover:bg-primary-fixed text-on-primary font-bold px-xl py-md rounded-lg flex items-center gap-sm transition-all shadow-[0_4px_15px_rgba(6,182,212,0.4)] hover:-translate-y-0.5" type="submit">
+<span class="material-symbols-outlined">how_to_reg</span>
+                                REGISTER SPECIMEN
+                            </button>
+</div>
+</form>
+</div>
+</div>
+<!-- Right Column: Recent Records (Panel Style) -->
+<div class="w-full xl:w-[400px] flex flex-col gap-md">
+<div class="flex items-center justify-between border-b border-outline-variant pb-sm">
+<h2 class="font-headline-sm text-headline-sm font-semibold text-on-surface">Recent Log</h2>
+<button class="text-primary hover:text-primary-fixed text-sm font-medium flex items-center gap-xs">
+                        View All <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+<div class="flex flex-col gap-sm overflow-y-auto pr-xs pb-xl">
+<!-- Record Card 1 -->
+<div class="bg-surface-container rounded-lg p-md border border-outline-variant hover:border-primary/50 transition-colors group cursor-pointer">
+<div class="flex justify-between items-start mb-sm">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-secondary text-[18px]">pulmonology</span>
+<span class="font-mono-data text-mono-data text-on-surface font-bold">D-8832-LN</span>
+</div>
+<span class="bg-secondary/10 text-secondary text-[10px] uppercase font-bold px-xs py-[2px] rounded border border-secondary/20 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Clear
+                            </span>
+</div>
+<div class="grid grid-cols-2 gap-y-xs text-sm text-on-surface-variant">
+<div class="flex flex-col">
+<span class="text-[10px] uppercase tracking-wider opacity-60">Preservation</span>
+<span class="font-medium text-xs">-80C Frozen</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase tracking-wider opacity-60">Location</span>
+<span class="font-mono-data text-xs">S2/R4/B12</span>
+</div>
+<div class="col-span-2 flex items-center gap-xs mt-xs pt-xs border-t border-outline-variant/30 text-xs">
+<span class="material-symbols-outlined text-[14px] opacity-60">schedule</span>
+                                14:32 (Today)
+                            </div>
+</div>
+</div>
+<!-- Record Card 2 -->
+<div class="bg-surface-container rounded-lg p-md border border-outline-variant hover:border-primary/50 transition-colors group cursor-pointer relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-tertiary-container"></div>
+<div class="flex justify-between items-start mb-sm pl-xs">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]">fluid</span>
+<span class="font-mono-data text-mono-data text-on-surface font-bold">D-8831-LV</span>
+</div>
+<span class="bg-tertiary-container/10 text-tertiary-container text-[10px] uppercase font-bold px-xs py-[2px] rounded border border-tertiary-container/20 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container animate-pulse"></span> Pending
+                            </span>
+</div>
+<div class="grid grid-cols-2 gap-y-xs text-sm text-on-surface-variant pl-xs">
+<div class="flex flex-col">
+<span class="text-[10px] uppercase tracking-wider opacity-60">Preservation</span>
+<span class="font-medium text-xs">Fixed</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase tracking-wider opacity-60">Location</span>
+<span class="font-mono-data text-xs">Processing</span>
+</div>
+<div class="col-span-2 flex items-center gap-xs mt-xs pt-xs border-t border-outline-variant/30 text-xs">
+<span class="material-symbols-outlined text-[14px] opacity-60">schedule</span>
+                                11:15 (Today)
+                            </div>
+</div>
+</div>
+<!-- Record Card 3 -->
+<div class="bg-surface-container rounded-lg p-md border border-outline-variant hover:border-primary/50 transition-colors group cursor-pointer">
+<div class="flex justify-between items-start mb-sm">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-secondary text-[18px]">nephrology</span>
+<span class="font-mono-data text-mono-data text-on-surface font-bold">D-8830-KD</span>
+</div>
+<span class="bg-secondary/10 text-secondary text-[10px] uppercase font-bold px-xs py-[2px] rounded border border-secondary/20 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Clear
+                            </span>
+</div>
+<div class="grid grid-cols-2 gap-y-xs text-sm text-on-surface-variant">
+<div class="flex flex-col">
+<span class="text-[10px] uppercase tracking-wider opacity-60">Preservation</span>
+<span class="font-medium text-xs">-80C Frozen</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase tracking-wider opacity-60">Location</span>
+<span class="font-mono-data text-xs">S1/R1/B04</span>
+</div>
+<div class="col-span-2 flex items-center gap-xs mt-xs pt-xs border-t border-outline-variant/30 text-xs">
+<span class="material-symbols-outlined text-[14px] opacity-60">schedule</span>
+                                09:45 (Today)
+                            </div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<script>
+    function calculateColdIschemia() {
+        const clampTimeInput = document.getElementById('clamp-time').value;
+        const collectionTimeInput = document.getElementById('collection-time').value;
+        const display = document.getElementById('cold-ischemia-display');
+
+        if (clampTimeInput && collectionTimeInput) {
+            const [clampHours, clampMinutes] = clampTimeInput.split(':').map(Number);
+            const [collectionHours, collectionMinutes] = collectionTimeInput.split(':').map(Number);
+
+            let clampDate = new Date(2000, 0, 1, clampHours, clampMinutes);
+            let collectionDate = new Date(2000, 0, 1, collectionHours, collectionMinutes);
+
+            // Handle cases where collection time is on the next day
+            if (collectionDate < clampDate) {
+                collectionDate.setDate(collectionDate.getDate() + 1);
+            }
+
+            const diffMs = collectionDate - clampDate;
+            const diffMins = Math.floor(diffMs / 60000);
+            
+            const hours = Math.floor(diffMins / 60);
+            const minutes = diffMins % 60;
+
+            display.textContent = `${hours}h ${minutes}min`;
+        } else {
+            display.textContent = '--h --min';
+        }
+    }
+
+    document.getElementById('clamp-time').addEventListener('input', calculateColdIschemia);
+    document.getElementById('collection-time').addEventListener('input', calculateColdIschemia);
+</script>
+</body></html>
