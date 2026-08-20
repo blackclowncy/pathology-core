@@ -52,7 +52,8 @@
   - 位于 Manual Remarks 正上方，支持独立勾选：
     - `NMP` (Normothermic Machine Perfusion 常温机械灌注)
     - `HMP` (Hypothermic Machine Perfusion 低温机械灌注)
-    - `Structure Image` (PAI / ULM / 光学显微成像)
+    - `Structure Image` (OCT/PAI/Ultrasound)
+    - `Histology` (组织学勾选)
 - **Excel 导出与批量导入**:
   - 整合 SheetJS，一键下载全部样本 `.xlsx` 文件，或上传 Excel/CSV/JSON 批量合并入库。
 - **动态 Recent Log 面板**:

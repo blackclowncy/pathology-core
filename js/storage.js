@@ -31,7 +31,7 @@ const DEFAULT_SPECIMENS = [
         coldIschemia: '2h 2min',
         coldIschemiaMinutes: 122,
         medicalHistory: ['HTN', 'Tobacco'],
-        statusOptions: ['NMP', 'Structure Image'],
+        statusOptions: ['NMP', 'Structure Image', 'Histology'],
         remarks: 'Left lower lobe wedge biopsy, tissue architecture intact, clear margins.',
         status: 'Clear',
         createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
@@ -54,7 +54,7 @@ const DEFAULT_SPECIMENS = [
         coldIschemia: '2h 15min',
         coldIschemiaMinutes: 135,
         medicalHistory: ['Diabetes', 'CAD', 'Obesity'],
-        statusOptions: ['HMP'],
+        statusOptions: ['HMP', 'Histology'],
         remarks: 'Segment IV core sample for trichrome & PAS staining, steatosis evaluation.',
         status: 'Pending',
         createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
