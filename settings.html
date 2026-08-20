@@ -501,7 +501,11 @@
             });
 
             // Google Drive Handlers
-            document.getElementById('set-gdrive-url').addEventListener('change', (e) => {
+            const gdriveUrlInput = document.getElementById('set-gdrive-url');
+            gdriveUrlInput.addEventListener('input', (e) => {
+                SpecimenStore.saveDriveConfig({ webhookUrl: e.target.value.trim() });
+            });
+            gdriveUrlInput.addEventListener('change', (e) => {
                 SpecimenStore.saveDriveConfig({ webhookUrl: e.target.value.trim() });
             });
 
@@ -516,6 +520,7 @@
                     showToast('Please enter a Web App URL first.', 'error');
                     return;
                 }
+                SpecimenStore.saveDriveConfig({ webhookUrl: url });
                 showToast('Testing Google Drive connection...', 'info');
                 const res = await SpecimenStore.testDriveConnection(url);
                 if (res.success) {
