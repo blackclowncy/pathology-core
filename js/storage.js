@@ -31,7 +31,8 @@ const DEFAULT_SPECIMENS = [
         coldIschemia: '2h 2min',
         coldIschemiaMinutes: 122,
         medicalHistory: ['HTN', 'Tobacco'],
-        statusOptions: ['NMP', 'Structure Image', 'Histology'],
+        statusOptions: ['NMP', 'Structure Image'],
+        histology: true,
         remarks: 'Left lower lobe wedge biopsy, tissue architecture intact, clear margins.',
         status: 'Clear',
         createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
@@ -54,7 +55,8 @@ const DEFAULT_SPECIMENS = [
         coldIschemia: '2h 15min',
         coldIschemiaMinutes: 135,
         medicalHistory: ['Diabetes', 'CAD', 'Obesity'],
-        statusOptions: ['HMP', 'Histology'],
+        statusOptions: ['HMP'],
+        histology: true,
         remarks: 'Segment IV core sample for trichrome & PAS staining, steatosis evaluation.',
         status: 'Pending',
         createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
@@ -78,6 +80,7 @@ const DEFAULT_SPECIMENS = [
         coldIschemiaMinutes: 150,
         medicalHistory: ['HTN'],
         statusOptions: ['NMP', 'Structure Image'],
+        histology: false,
         remarks: 'Cortico-medullary junction section preserved for glomerulosclerosis & IFTA mapping.',
         status: 'Clear',
         createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString()
@@ -225,6 +228,7 @@ const SpecimenStore = {
         if (!specimen.statusOptions) {
             specimen.statusOptions = [];
         }
+        specimen.histology = Boolean(specimen.histology);
         if (!specimen.status) {
             // Auto determine status based on cold ischemia (>24h flagged)
             if (specimen.coldIschemiaMinutes && specimen.coldIschemiaMinutes > 1440) {
@@ -387,6 +391,7 @@ const SpecimenStore = {
             'Preservation Method': item.preservation,
             'Storage Location': item.location,
             'Status / Modality': (item.statusOptions || []).join('; '),
+            'Histology': item.histology ? 'Yes' : 'No',
             'Age': item.age || '',
             'Gender': item.gender || '',
             'BMI (kg/m²)': item.bmi || '',
@@ -510,6 +515,7 @@ const SpecimenStore = {
                             coldIschemia,
                             coldIschemiaMinutes,
                             statusOptions,
+                            histology: row['Histology'] === 'Yes' || row['histology'] === true,
                             medicalHistory,
                             remarks,
                             status,

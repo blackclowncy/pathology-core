@@ -565,7 +565,7 @@
                                 </label>
                             </div>
 
-                            <!-- Status / Perfusion & Modality Checkboxes (NMP, HMP, Structure Image, Histology) -->
+                            <!-- Status (Check all that apply) -->
                             <div class="flex flex-col gap-xs mt-sm pt-sm border-t border-outline-variant/30">
                                 <label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Status (Check all that apply)</label>
                                 <div class="flex flex-wrap gap-lg text-sm" id="status-options-container">
@@ -584,8 +584,15 @@
                                         <span class="group-hover:text-primary transition-colors text-on-surface font-semibold">Structure Image</span>
                                         <span class="text-xs text-on-surface-variant">(OCT/PAI/Ultrasound)</span>
                                     </label>
+                                </div>
+                            </div>
+
+                            <!-- Histology (Parallel Item with single checkbox) -->
+                            <div class="flex flex-col gap-xs mt-xs pt-xs border-t border-outline-variant/30">
+                                <label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Histology</label>
+                                <div class="flex items-center text-sm">
                                     <label class="flex items-center gap-sm cursor-pointer group">
-                                        <input class="checkbox-clinical status-opt-cb" type="checkbox" value="Histology"/>
+                                        <input class="checkbox-clinical" id="histology-checkbox" type="checkbox"/>
                                         <span class="group-hover:text-primary transition-colors text-on-surface font-semibold">Histology</span>
                                     </label>
                                 </div>
@@ -740,9 +747,10 @@
 
                 const borderAccent = isFixedPending ? '<div class="absolute left-0 top-0 bottom-0 w-1 bg-tertiary-container"></div>' : (isFlagged ? '<div class="absolute left-0 top-0 bottom-0 w-1 bg-error"></div>' : '');
 
-                const statusTags = (item.statusOptions && item.statusOptions.length)
-                    ? item.statusOptions.map(s => `<span class="text-[9px] bg-surface-container-high px-1 py-0.5 rounded text-primary border border-outline-variant/40">${s}</span>`).join(' ')
-                    : '';
+                const statusTags = [
+                    ...(item.statusOptions && item.statusOptions.length ? item.statusOptions.map(s => `<span class="text-[9px] bg-surface-container-high px-1 py-0.5 rounded text-primary border border-outline-variant/40">${s}</span>`) : []),
+                    ...(item.histology ? [`<span class="text-[9px] bg-primary/20 text-primary px-1 py-0.5 rounded border border-primary/30 font-semibold">Histology</span>`] : [])
+                ].join(' ');
 
                 return `
                     <div onclick="openSpecimenModal('${item.id}')" class="bg-surface-container rounded-lg p-md border border-outline-variant hover:border-primary/50 transition-all hover:scale-[1.01] group cursor-pointer relative overflow-hidden shadow-sm">
@@ -868,6 +876,9 @@
                 const statusCheckboxes = document.querySelectorAll('.status-opt-cb:checked');
                 const statusOptions = Array.from(statusCheckboxes).map(cb => cb.value);
 
+                // Collect Histology checkbox
+                const histology = document.getElementById('histology-checkbox').checked;
+
                 // Collect Medical History
                 const medCheckboxes = document.querySelectorAll('#medical-history-checkboxes input[type="checkbox"]:checked');
                 const medicalHistory = Array.from(medCheckboxes).map(cb => cb.value);
@@ -891,6 +902,7 @@
                     coldIschemia: calculatedColdIschemiaText !== '--h --min' ? calculatedColdIschemiaText : '',
                     coldIschemiaMinutes: calculatedColdIschemiaMinutes,
                     statusOptions,
+                    histology,
                     medicalHistory,
                     remarks,
                     createdAt: new Date().toISOString()
@@ -986,6 +998,7 @@
             document.getElementById('other-organ-input').classList.add('hidden');
 
             document.querySelectorAll('.status-opt-cb').forEach(cb => cb.checked = false);
+            document.getElementById('histology-checkbox').checked = false;
             document.querySelectorAll('#medical-history-checkboxes input[type="checkbox"]').forEach(cb => cb.checked = false);
 
             const organButtons = document.querySelectorAll('#organ-buttons-container .organ-icon-btn');

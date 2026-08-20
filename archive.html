@@ -411,9 +411,10 @@
                         ? '<span class="bg-tertiary-container/10 text-tertiary-container text-xs uppercase font-bold px-2 py-0.5 rounded border border-tertiary-container/20 flex items-center gap-1 w-fit"><span class="w-1.5 h-1.5 rounded-full bg-tertiary-container animate-pulse"></span> Pending</span>'
                         : '<span class="bg-error/10 text-error text-xs uppercase font-bold px-2 py-0.5 rounded border border-error/20 flex items-center gap-1 w-fit"><span class="w-1.5 h-1.5 rounded-full bg-error"></span> Flagged</span>');
 
-                const statusBadges = (item.statusOptions && item.statusOptions.length)
-                    ? item.statusOptions.map(opt => `<span class="bg-secondary/15 text-secondary border border-secondary/30 px-1.5 py-0.5 rounded text-[11px] font-semibold">${opt}</span>`).join(' ')
-                    : '<span class="text-on-surface-variant text-xs">-</span>';
+                const statusBadges = [
+                    ...(item.statusOptions && item.statusOptions.length ? item.statusOptions.map(opt => `<span class="bg-secondary/15 text-secondary border border-secondary/30 px-1.5 py-0.5 rounded text-[11px] font-semibold">${opt}</span>`) : []),
+                    ...(item.histology ? [`<span class="bg-primary/20 text-primary border border-primary/30 px-1.5 py-0.5 rounded text-[11px] font-semibold">Histology</span>`] : [])
+                ].join(' ') || '<span class="text-on-surface-variant text-xs">-</span>';
 
                 return `
                     <tr class="hover:bg-surface-container-high/40 transition-colors">

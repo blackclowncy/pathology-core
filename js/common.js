@@ -186,7 +186,10 @@ function openSpecimenModal(specimenId) {
 
                 <!-- Perfusion / Modality Status Options -->
                 <div class="flex flex-col gap-1.5 p-sm rounded bg-surface-container/30 border border-outline-variant/20">
-                    <span class="text-xs text-on-surface-variant uppercase font-semibold">Status / Perfusion & Modality</span>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-on-surface-variant uppercase font-semibold">Status / Perfusion & Modality</span>
+                        <span class="text-xs font-semibold ${specimen.histology ? 'text-primary' : 'text-on-surface-variant'}">Histology: ${specimen.histology ? 'Yes' : 'No'}</span>
+                    </div>
                     <div class="flex flex-wrap gap-1.5 mt-1">
                         ${statusOptionsBadges}
                     </div>
@@ -247,9 +250,9 @@ function printSpecimenLabel(specimenId) {
     if (!specimen) return;
 
     const settings = SpecimenStore.getSettings();
-    const statusText = (specimen.statusOptions && specimen.statusOptions.length) ? specimen.statusOptions.join(', ') : 'N/A';
+    const statusText = (specimen.statusOptions && specimen.statusOptions.length) ? specimen.statusOptions.join(', ') : 'None';
 
-    const printWin = window.open('', '_blank', 'width=500,height=420');
+    const printWin = window.open('', '_blank', 'width=500,height=440');
     printWin.document.write(`
         <!DOCTYPE html>
         <html>
@@ -269,6 +272,7 @@ function printSpecimenLabel(specimenId) {
                 <div class="row"><strong>DONOR ID:</strong> <span>${specimen.donorId}</span></div>
                 <div class="row"><strong>ORGAN:</strong> <span>${specimen.organ}</span></div>
                 <div class="row"><strong>STATUS:</strong> <span>${statusText}</span></div>
+                <div class="row"><strong>HISTOLOGY:</strong> <span>${specimen.histology ? 'YES' : 'NO'}</span></div>
                 <div class="row"><strong>TYPE:</strong> <span>${specimen.preservation}</span></div>
                 <div class="row"><strong>LOCATION:</strong> <span>${specimen.location}</span></div>
                 <div class="row"><strong>COLD ISCH:</strong> <span>${specimen.coldIschemia || 'N/A'}</span></div>

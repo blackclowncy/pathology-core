@@ -48,12 +48,10 @@
   - 支持分钟数录入；勾选 N/A 时自动禁用并灰化输入框。
 - **临床病史多选 (Medical History)**:
   - 包含 10 项临床常见病史（HTN, Diabetes, CAD, COPD, Obesity, CKD, Liver, Tobacco, Alcohol, Drugs）。
-- **【最新增加】Status 灌注与成像状态多选项**:
-  - 位于 Manual Remarks 正上方，支持独立勾选：
-    - `NMP` (Normothermic Machine Perfusion 常温机械灌注)
-    - `HMP` (Hypothermic Machine Perfusion 低温机械灌注)
-    - `Structure Image` (OCT/PAI/Ultrasound)
-    - `Histology` (组织学勾选)
+- **【最新增加】Status 灌注与成像多选 & 并列 Histology 选项**:
+  - 位于 Manual Remarks 正上方，分为两个并列配置项：
+    - **`Status (Check all that apply)`**: 包含 `NMP` (Normothermic Machine Perfusion)、`HMP` (Hypothermic Machine Perfusion)、`Structure Image` (OCT/PAI/Ultrasound) 三项多选。
+    - **`Histology`**: 独立的并列配置项，无子选项，提供单个独立勾选框（勾选/不勾选）。
 - **Excel 导出与批量导入**:
   - 整合 SheetJS，一键下载全部样本 `.xlsx` 文件，或上传 Excel/CSV/JSON 批量合并入库。
 - **动态 Recent Log 面板**:
