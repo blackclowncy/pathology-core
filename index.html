@@ -122,6 +122,11 @@
             background: rgba(6, 182, 212, 0.15) !important;
             color: #4cd7f6 !important;
         }
+        .position-btn.selected {
+            border-color: #4cd7f6 !important;
+            background: rgba(6, 182, 212, 0.2) !important;
+            color: #4cd7f6 !important;
+        }
         .glow-shadow {
             box-shadow: 0px 4px 20px rgba(6, 182, 212, 0.15);
         }
@@ -409,6 +414,19 @@
                             <div class="hidden mt-sm" id="other-organ-input">
                                 <input id="other-organ-text" class="input-clinical bg-[#0F172A] text-white w-full rounded-md py-sm px-sm font-body-md text-sm" placeholder="Specify other organ..." type="text"/>
                             </div>
+
+                            <!-- Position Sub-options (for Lung / Kidney) -->
+                            <div id="position-container" class="flex flex-col gap-xs mt-sm bg-surface-container/40 p-sm rounded-lg border border-primary/30">
+                                <label class="font-label-md text-label-md text-primary uppercase tracking-wider flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[16px]">pin_drop</span> Position (Side / Anatomy)
+                                </label>
+                                <div class="grid grid-cols-3 gap-xs" id="position-buttons-container">
+                                    <button type="button" class="position-btn py-1.5 px-2 rounded border border-outline-variant text-xs font-semibold text-on-surface-variant hover:border-primary/50 transition-all text-center" data-position="Right">Right</button>
+                                    <button type="button" class="position-btn py-1.5 px-2 rounded border border-outline-variant text-xs font-semibold text-on-surface-variant hover:border-primary/50 transition-all text-center" data-position="Left">Left</button>
+                                    <button type="button" class="position-btn py-1.5 px-2 rounded border border-outline-variant text-xs font-semibold text-on-surface-variant hover:border-primary/50 transition-all text-center" data-position="Enbloc">Enbloc</button>
+                                </div>
+                                <input type="hidden" id="selected-position" value=""/>
+                            </div>
                         </div>
 
                         <!-- Col 2: Core Details & Patient Info -->
@@ -484,7 +502,7 @@
                             </div>
                         </div>
 
-                        <!-- Col 3: Timing -->
+                        <!-- Col 3: Timing (Date & Time) -->
                         <div class="md:col-span-6 xl:col-span-12 flex flex-row flex-wrap gap-lg bg-surface-container/30 p-md rounded-lg border border-outline-variant/30">
                             <div class="flex-1 flex flex-col gap-xs min-w-[150px]">
                                 <label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Warm Ischemia</label>
@@ -496,18 +514,18 @@
                                     </label>
                                 </div>
                             </div>
-                            <div class="flex-1 flex flex-col gap-xs min-w-[200px]">
-                                <label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Clamp Time</label>
+                            <div class="flex-1 flex flex-col gap-xs min-w-[220px]">
+                                <label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Clamp Time (Date & Time)</label>
                                 <div class="relative flex items-center h-full">
                                     <span class="material-symbols-outlined absolute left-sm text-on-surface-variant text-[18px]">schedule</span>
-                                    <input class="input-clinical bg-[#0F172A] text-white w-full rounded-md py-sm pl-xl pr-sm font-mono-data text-mono-data" id="clamp-time" type="time"/>
+                                    <input class="input-clinical bg-[#0F172A] text-white w-full rounded-md py-sm pl-xl pr-sm font-mono-data text-mono-data" id="clamp-time" type="datetime-local"/>
                                 </div>
                             </div>
-                            <div class="flex-1 flex flex-col gap-xs min-w-[200px]">
-                                <label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Collection Time</label>
+                            <div class="flex-1 flex flex-col gap-xs min-w-[220px]">
+                                <label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Collection Time (Date & Time)</label>
                                 <div class="relative flex items-center h-full">
                                     <span class="material-symbols-outlined absolute left-sm text-on-surface-variant text-[18px]">update</span>
-                                    <input class="input-clinical bg-[#0F172A] text-white w-full rounded-md py-sm pl-xl pr-sm font-mono-data text-mono-data" id="collection-time" type="time"/>
+                                    <input class="input-clinical bg-[#0F172A] text-white w-full rounded-md py-sm pl-xl pr-sm font-mono-data text-mono-data" id="collection-time" type="datetime-local"/>
                                 </div>
                             </div>
                             <div class="flex flex-col gap-xs min-w-[200px] justify-center ml-auto border-l border-outline-variant/30 pl-lg">
@@ -673,37 +691,39 @@
             const display = document.getElementById('cold-ischemia-display');
 
             if (clampTimeInput && collectionTimeInput) {
-                const [clampHours, clampMinutes] = clampTimeInput.split(':').map(Number);
-                const [collectionHours, collectionMinutes] = collectionTimeInput.split(':').map(Number);
+                const clampDate = new Date(clampTimeInput);
+                const collectionDate = new Date(collectionTimeInput);
 
-                let clampDate = new Date(2000, 0, 1, clampHours, clampMinutes);
-                let collectionDate = new Date(2000, 0, 1, collectionHours, collectionMinutes);
+                if (!isNaN(clampDate.getTime()) && !isNaN(collectionDate.getTime())) {
+                    const diffMs = collectionDate.getTime() - clampDate.getTime();
+                    if (diffMs < 0) {
+                        calculatedColdIschemiaMinutes = 0;
+                        calculatedColdIschemiaText = 'Invalid';
+                        display.textContent = 'Invalid (Collect < Clamp)';
+                        display.className = 'font-mono-data text-error text-xs font-bold';
+                        return;
+                    }
 
-                if (collectionDate < clampDate) {
-                    collectionDate.setDate(collectionDate.getDate() + 1);
+                    const diffMins = Math.floor(diffMs / 60000);
+                    const hours = Math.floor(diffMins / 60);
+                    const minutes = diffMins % 60;
+
+                    calculatedColdIschemiaMinutes = diffMins;
+                    calculatedColdIschemiaText = `${hours}h ${minutes}min`;
+                    display.textContent = calculatedColdIschemiaText;
+
+                    if (diffMins > 1440) { // >24h
+                        display.className = 'font-mono-data text-error text-lg font-bold animate-pulse';
+                    } else {
+                        display.className = 'font-mono-data text-secondary text-lg font-bold';
+                    }
+                    return;
                 }
-
-                const diffMs = collectionDate - clampDate;
-                const diffMins = Math.floor(diffMs / 60000);
-                
-                const hours = Math.floor(diffMins / 60);
-                const minutes = diffMins % 60;
-
-                calculatedColdIschemiaMinutes = diffMins;
-                calculatedColdIschemiaText = `${hours}h ${minutes}min`;
-                display.textContent = calculatedColdIschemiaText;
-
-                if (diffMins > 1440) { // >24h
-                    display.className = 'font-mono-data text-error text-lg font-bold animate-pulse';
-                } else {
-                    display.className = 'font-mono-data text-secondary text-lg font-bold';
-                }
-            } else {
-                calculatedColdIschemiaMinutes = 0;
-                calculatedColdIschemiaText = '--h --min';
-                display.textContent = '--h --min';
-                display.className = 'font-mono-data text-secondary text-lg font-bold';
             }
+            calculatedColdIschemiaMinutes = 0;
+            calculatedColdIschemiaText = '--h --min';
+            display.textContent = '--h --min';
+            display.className = 'font-mono-data text-secondary text-lg font-bold';
         }
 
         function refreshTrackingId() {
@@ -752,6 +772,8 @@
                     ...(item.histology ? [`<span class="text-[9px] bg-primary/20 text-primary px-1 py-0.5 rounded border border-primary/30 font-semibold">Histology</span>`] : [])
                 ].join(' ');
 
+                const organLabel = item.organ + (item.position ? ` (${item.position})` : '');
+
                 return `
                     <div onclick="openSpecimenModal('${item.id}')" class="bg-surface-container rounded-lg p-md border border-outline-variant hover:border-primary/50 transition-all hover:scale-[1.01] group cursor-pointer relative overflow-hidden shadow-sm">
                         ${borderAccent}
@@ -759,7 +781,7 @@
                             <div class="flex items-center gap-xs flex-wrap">
                                 <span class="material-symbols-outlined ${isFlagged ? 'text-error' : (isFixedPending ? 'text-tertiary-container' : 'text-secondary')} text-[18px]">${organIcon}</span>
                                 <span class="font-mono-data text-mono-data text-on-surface font-bold">${item.donorId}</span>
-                                <span class="text-[10px] text-on-surface-variant uppercase font-medium">(${item.organ})</span>
+                                <span class="text-[10px] text-on-surface-variant uppercase font-medium">(${organLabel})</span>
                             </div>
                             ${statusBadge}
                         </div>
@@ -804,7 +826,29 @@
             const hiddenOrganInput = document.getElementById('selected-organ');
             const otherOrganContainer = document.getElementById('other-organ-input');
             const otherOrganText = document.getElementById('other-organ-text');
+            const positionContainer = document.getElementById('position-container');
+            const hiddenPositionInput = document.getElementById('selected-position');
+            const positionButtons = document.querySelectorAll('#position-buttons-container .position-btn');
 
+            // Position button listeners
+            positionButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const isAlreadySelected = btn.classList.contains('selected');
+                    positionButtons.forEach(b => {
+                        b.classList.remove('selected');
+                        b.classList.add('text-on-surface-variant');
+                    });
+                    if (!isAlreadySelected) {
+                        btn.classList.add('selected');
+                        btn.classList.remove('text-on-surface-variant');
+                        hiddenPositionInput.value = btn.getAttribute('data-position');
+                    } else {
+                        hiddenPositionInput.value = '';
+                    }
+                });
+            });
+
+            // Organ button listeners
             organButtons.forEach(btn => {
                 btn.addEventListener('click', () => {
                     organButtons.forEach(b => {
@@ -822,6 +866,18 @@
                         otherOrganText.focus();
                     } else {
                         otherOrganContainer.classList.add('hidden');
+                    }
+
+                    // Show Position sub-option only for Kidney or Lung
+                    if (organ === 'Lung' || organ === 'Kidney') {
+                        positionContainer.classList.remove('hidden');
+                    } else {
+                        positionContainer.classList.add('hidden');
+                        hiddenPositionInput.value = '';
+                        positionButtons.forEach(b => {
+                            b.classList.remove('selected');
+                            b.classList.add('text-on-surface-variant');
+                        });
                     }
                 });
             });
@@ -859,6 +915,7 @@
                     if (customOrgan) organ = customOrgan;
                 }
 
+                const position = (organ === 'Lung' || organ === 'Kidney') ? hiddenPositionInput.value : '';
                 const preservationEl = document.querySelector('input[name="preservation"]:checked');
                 const preservation = preservationEl ? preservationEl.value : '-80C Frozen';
                 const location = document.getElementById('storage-location').value.trim() || 'Sector 1';
@@ -889,6 +946,7 @@
                     tid: currentTID.startsWith('T-') ? currentTID : SpecimenStore.getNextTrackingId(),
                     donorId,
                     organ,
+                    position,
                     preservation,
                     location,
                     age,
@@ -909,7 +967,7 @@
                 };
 
                 SpecimenStore.save(newSpecimen);
-                showToast(`Specimen ${donorId} (${organ}) registered successfully!`, 'success');
+                showToast(`Specimen ${donorId} (${organ}${position ? ' - ' + position : ''}) registered successfully!`, 'success');
 
                 resetForm();
                 renderRecentLog();
@@ -996,6 +1054,13 @@
             document.getElementById('manual-remarks').value = '';
             document.getElementById('other-organ-text').value = '';
             document.getElementById('other-organ-input').classList.add('hidden');
+
+            document.getElementById('selected-position').value = '';
+            document.querySelectorAll('#position-buttons-container .position-btn').forEach(b => {
+                b.classList.remove('selected');
+                b.classList.add('text-on-surface-variant');
+            });
+            document.getElementById('position-container').classList.remove('hidden'); // Default is Lung
 
             document.querySelectorAll('.status-opt-cb').forEach(cb => cb.checked = false);
             document.getElementById('histology-checkbox').checked = false;

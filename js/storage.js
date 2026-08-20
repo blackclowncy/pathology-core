@@ -18,6 +18,7 @@ const DEFAULT_SPECIMENS = [
         tid: 'T-2026-0819-01',
         donorId: 'D-8832-LN',
         organ: 'Lung',
+        position: 'Right',
         preservation: '-80C Frozen',
         location: 'S2/R4/B12',
         age: 54,
@@ -26,8 +27,8 @@ const DEFAULT_SPECIMENS = [
         causeOfDeath: 'Traumatic Brain Injury',
         warmIschemia: 18,
         warmIschemiaNA: false,
-        clampTime: '12:30',
-        collectionTime: '14:32',
+        clampTime: '2026-08-19T12:30',
+        collectionTime: '2026-08-19T14:32',
         coldIschemia: '2h 2min',
         coldIschemiaMinutes: 122,
         medicalHistory: ['HTN', 'Tobacco'],
@@ -42,6 +43,7 @@ const DEFAULT_SPECIMENS = [
         tid: 'T-2026-0819-02',
         donorId: 'D-8831-LV',
         organ: 'Liver',
+        position: '',
         preservation: 'Fixed',
         location: 'Processing',
         age: 62,
@@ -50,8 +52,8 @@ const DEFAULT_SPECIMENS = [
         causeOfDeath: 'Anoxic Encephalopathy',
         warmIschemia: 25,
         warmIschemiaNA: false,
-        clampTime: '09:00',
-        collectionTime: '11:15',
+        clampTime: '2026-08-19T09:00',
+        collectionTime: '2026-08-19T11:15',
         coldIschemia: '2h 15min',
         coldIschemiaMinutes: 135,
         medicalHistory: ['Diabetes', 'CAD', 'Obesity'],
@@ -66,6 +68,7 @@ const DEFAULT_SPECIMENS = [
         tid: 'T-2026-0819-03',
         donorId: 'D-8830-KD',
         organ: 'Kidney',
+        position: 'Left',
         preservation: '-80C Frozen',
         location: 'S1/R1/B04',
         age: 47,
@@ -74,8 +77,8 @@ const DEFAULT_SPECIMENS = [
         causeOfDeath: 'Cerebrovascular Accident',
         warmIschemia: 12,
         warmIschemiaNA: false,
-        clampTime: '07:15',
-        collectionTime: '09:45',
+        clampTime: '2026-08-19T07:15',
+        collectionTime: '2026-08-19T09:45',
         coldIschemia: '2h 30min',
         coldIschemiaMinutes: 150,
         medicalHistory: ['HTN'],
@@ -90,6 +93,7 @@ const DEFAULT_SPECIMENS = [
         tid: 'T-2026-0818-01',
         donorId: 'D-8829-HT',
         organ: 'Heart',
+        position: '',
         preservation: '-80C Frozen',
         location: 'S1/R3/B08',
         age: 39,
@@ -98,12 +102,13 @@ const DEFAULT_SPECIMENS = [
         causeOfDeath: 'Head Trauma',
         warmIschemia: 15,
         warmIschemiaNA: false,
-        clampTime: '14:00',
-        collectionTime: '16:20',
+        clampTime: '2026-08-18T14:00',
+        collectionTime: '2026-08-18T16:20',
         coldIschemia: '2h 20min',
         coldIschemiaMinutes: 140,
         medicalHistory: ['Tobacco', 'Alcohol'],
         statusOptions: ['HMP', 'Structure Image'],
+        histology: false,
         remarks: 'Left ventricular apex biopsy, rapid freezing protocol applied.',
         status: 'Clear',
         createdAt: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString()
@@ -113,6 +118,7 @@ const DEFAULT_SPECIMENS = [
         tid: 'T-2026-0818-02',
         donorId: 'D-8828-PA',
         organ: 'Pancreas',
+        position: '',
         preservation: 'Fixed',
         location: 'S3/R2/B02',
         age: 51,
@@ -121,12 +127,13 @@ const DEFAULT_SPECIMENS = [
         causeOfDeath: 'Intracranial Hemorrhage',
         warmIschemia: 30,
         warmIschemiaNA: false,
-        clampTime: '10:10',
-        collectionTime: '14:40',
+        clampTime: '2026-08-18T10:10',
+        collectionTime: '2026-08-18T14:40',
         coldIschemia: '4h 30min',
         coldIschemiaMinutes: 270,
         medicalHistory: ['Diabetes', 'Obesity', 'HTN'],
         statusOptions: ['NMP'],
+        histology: false,
         remarks: 'Tail of pancreas specimen; prolonged cold ischemia flagged for islet assessment.',
         status: 'Flagged',
         createdAt: new Date(Date.now() - 32 * 60 * 60 * 1000).toISOString()
@@ -228,6 +235,7 @@ const SpecimenStore = {
         if (!specimen.statusOptions) {
             specimen.statusOptions = [];
         }
+        specimen.position = specimen.position || '';
         specimen.histology = Boolean(specimen.histology);
         if (!specimen.status) {
             // Auto determine status based on cold ischemia (>24h flagged)
@@ -305,6 +313,7 @@ const SpecimenStore = {
                     (item.donorId && item.donorId.toLowerCase().includes(q)) ||
                     (item.tid && item.tid.toLowerCase().includes(q)) ||
                     (item.organ && item.organ.toLowerCase().includes(q)) ||
+                    (item.position && item.position.toLowerCase().includes(q)) ||
                     (item.location && item.location.toLowerCase().includes(q)) ||
                     (item.preservation && item.preservation.toLowerCase().includes(q)) ||
                     (item.causeOfDeath && item.causeOfDeath.toLowerCase().includes(q)) ||
@@ -388,6 +397,7 @@ const SpecimenStore = {
             'Tracking ID': item.tid || item.id,
             'Donor ID': item.donorId,
             'Organ Type': item.organ,
+            'Position': item.position || '',
             'Preservation Method': item.preservation,
             'Storage Location': item.location,
             'Status / Modality': (item.statusOptions || []).join('; '),
@@ -478,6 +488,7 @@ const SpecimenStore = {
                     const imported = rows.map((row, idx) => {
                         const donorId = row['Donor ID'] || row['donorId'] || `D-IMP-${idx + 1}`;
                         const organ = row['Organ Type'] || row['organ'] || 'Other';
+                        const position = row['Position'] || row['position'] || '';
                         const preservation = row['Preservation Method'] || row['preservation'] || '-80C Frozen';
                         const location = row['Storage Location'] || row['location'] || 'Unassigned';
                         const age = parseInt(row['Age'] || row['age'], 10) || null;
@@ -502,6 +513,7 @@ const SpecimenStore = {
                             tid: row['Tracking ID'] || row['tid'] || `T-${new Date().getFullYear()}-${String(idx + 1).padStart(4, '0')}`,
                             donorId,
                             organ,
+                            position,
                             preservation,
                             location,
                             age,

@@ -35,28 +35,30 @@
 ## 2. 详细文件改动与功能实现清单
 
 ### 2.1 样本登记首页 [`index.html`](file:///e:/Project/Web/pathology-core/index.html)
-- **器官类型选择器**:
-  - 提供 8 个标准器官图标按钮（Lung, Heart, Liver, Kidney, Pancreas, Spleen, Intestines, Other）。
-  - 支持高亮选中切换，点击 `Other` 时自动动态展开自定义器官文本输入框。
+- **器官类型选择器与 Position 解剖方位子选项**:
+  - 提供 8 个标准器官图标按钮（Lung, Heart, Liver, Kidney, Pancreas, Spleen, Intestines, Other），保持原设计布局与交互。
+  - **【最新增加】Position 方位子选项**：当选择 **`Kidney`** 或 **`Lung`** 时，在器官区下方动态展开 `Position` 选项（可选 **`Right`**, **`Left`**, **`Enbloc`**）；切换至其他器官类型时自动隐藏并清空。
+  - 点击 `Other` 时自动动态展开自定义器官文本输入框。
 - **自动流水号生成**:
   - 自动生成唯一跟踪编号（例如 `T-2026-0819-01`），表单提交后自动刷新流水号。
-- **冷缺血时间 (Cold Ischemia Time) 实时自动计算**:
-  - 监听阻断时间（Clamp Time）与取材时间（Collection Time）输入。
-  - 自动处理跨午夜时间差，实时展示计算结果（如 `2h 15min`）。
-  - 当冷缺血时间超过 24 小时（>1440 分钟）时，字体自动变为红色警示呼吸灯动效并自动打上 `Flagged` 标记。
+- **【最新升级】阻断与取材时间支持年月日几点几分 (`datetime-local`)**:
+  - `Clamp Time` 与 `Collection Time` 升级为包含年月日的精准时间选择器。
+  - **冷缺血时间 (Cold Ischemia Time) 实时自动计算**：
+    - 精准计算阻断至取材的总毫秒与分钟差（格式化为 `Xh Ymin`）。
+    - 当冷缺血时间超过 24 小时（>1440 分钟）时，字体自动变为红色警示呼吸灯动效并打上 `Flagged` 标记。
 - **热缺血时间与 N/A 快速切换**:
   - 支持分钟数录入；勾选 N/A 时自动禁用并灰化输入框。
 - **临床病史多选 (Medical History)**:
   - 包含 10 项临床常见病史（HTN, Diabetes, CAD, COPD, Obesity, CKD, Liver, Tobacco, Alcohol, Drugs）。
-- **【最新增加】Status 灌注与成像多选 & 并列 Histology 选项**:
+- **Status 灌注与成像多选 & 并列 Histology 选项**:
   - 位于 Manual Remarks 正上方，分为两个并列配置项：
     - **`Status (Check all that apply)`**: 包含 `NMP` (Normothermic Machine Perfusion)、`HMP` (Hypothermic Machine Perfusion)、`Structure Image` (OCT/PAI/Ultrasound) 三项多选。
     - **`Histology`**: 独立的并列配置项，无子选项，提供单个独立勾选框（勾选/不勾选）。
 - **Excel 导出与批量导入**:
-  - 整合 SheetJS，一键下载全部样本 `.xlsx` 文件，或上传 Excel/CSV/JSON 批量合并入库。
+  - 整合 SheetJS，导出包含 `Position`、`Histology` 及完整年月日时间的全部样本 `.xlsx` 文件，或上传批量合并入库。
 - **动态 Recent Log 面板**:
   - 实时从 `localStorage` 获取最新入库样本并以卡片形式排列。
-  - 包含状态标签、NMP/HMP 标签、保存方式、架位与相对时间（如 "Just now", "14:32 Today"）。
+  - 包含器官与方位（如 `Lung (Right)`）、状态标签、NMP/HMP 标签、保存方式、架位与相对时间。
   - 点击卡片即可调出 **样本详情模态框 (Specimen Detail Modal)**。
 
 ---

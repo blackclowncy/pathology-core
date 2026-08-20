@@ -160,7 +160,7 @@ function openSpecimenModal(specimenId) {
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-md text-sm">
                     <div class="flex flex-col gap-1 p-sm rounded bg-surface-container/30 border border-outline-variant/20">
                         <span class="text-xs text-on-surface-variant uppercase font-semibold">Organ & Preservation</span>
-                        <span class="text-on-surface font-medium">${specimen.organ} • ${specimen.preservation}</span>
+                        <span class="text-on-surface font-medium">${specimen.organ}${specimen.position ? ' (' + specimen.position + ')' : ''} • ${specimen.preservation}</span>
                     </div>
                     <div class="flex flex-col gap-1 p-sm rounded bg-surface-container/30 border border-outline-variant/20">
                         <span class="text-xs text-on-surface-variant uppercase font-semibold">Storage Location</span>
@@ -251,6 +251,7 @@ function printSpecimenLabel(specimenId) {
 
     const settings = SpecimenStore.getSettings();
     const statusText = (specimen.statusOptions && specimen.statusOptions.length) ? specimen.statusOptions.join(', ') : 'None';
+    const organLabel = specimen.organ + (specimen.position ? ` (${specimen.position})` : '');
 
     const printWin = window.open('', '_blank', 'width=500,height=440');
     printWin.document.write(`
@@ -270,7 +271,7 @@ function printSpecimenLabel(specimenId) {
             <div class="label-box">
                 <div class="title">PATHOLOGY CORE • ${settings.labId || 'TANG LAB'}</div>
                 <div class="row"><strong>DONOR ID:</strong> <span>${specimen.donorId}</span></div>
-                <div class="row"><strong>ORGAN:</strong> <span>${specimen.organ}</span></div>
+                <div class="row"><strong>ORGAN:</strong> <span>${organLabel}</span></div>
                 <div class="row"><strong>STATUS:</strong> <span>${statusText}</span></div>
                 <div class="row"><strong>HISTOLOGY:</strong> <span>${specimen.histology ? 'YES' : 'NO'}</span></div>
                 <div class="row"><strong>TYPE:</strong> <span>${specimen.preservation}</span></div>
@@ -440,11 +441,11 @@ function openEmergencyLogModal() {
                 <div class="grid grid-cols-2 gap-sm">
                     <div class="flex flex-col gap-1">
                         <label class="text-xs font-semibold uppercase text-on-surface-variant">Clamp Time</label>
-                        <input type="time" id="emg-clamp" class="input-clinical rounded p-2 text-sm font-mono-data text-white bg-[#0F172A] border border-[#334155]">
+                        <input type="datetime-local" id="emg-clamp" class="input-clinical rounded p-2 text-xs font-mono-data text-white bg-[#0F172A] border border-[#334155]">
                     </div>
                     <div class="flex flex-col gap-1">
                         <label class="text-xs font-semibold uppercase text-on-surface-variant">Collection Time</label>
-                        <input type="time" id="emg-collect" class="input-clinical rounded p-2 text-sm font-mono-data text-white bg-[#0F172A] border border-[#334155]">
+                        <input type="datetime-local" id="emg-collect" class="input-clinical rounded p-2 text-xs font-mono-data text-white bg-[#0F172A] border border-[#334155]">
                     </div>
                 </div>
                 <div class="flex flex-col gap-1">
@@ -475,13 +476,12 @@ function openEmergencyLogModal() {
         let coldIschemia = 'N/A';
         let coldIschemiaMinutes = 0;
         if (clampTime && collectionTime) {
-            const [ch, cm] = clampTime.split(':').map(Number);
-            const [oh, om] = collectionTime.split(':').map(Number);
-            let d1 = new Date(2000, 0, 1, ch, cm);
-            let d2 = new Date(2000, 0, 1, oh, om);
-            if (d2 < d1) d2.setDate(d2.getDate() + 1);
-            coldIschemiaMinutes = Math.floor((d2 - d1) / 60000);
-            coldIschemia = `${Math.floor(coldIschemiaMinutes / 60)}h ${coldIschemiaMinutes % 60}min`;
+            const d1 = new Date(clampTime);
+            const d2 = new Date(collectionTime);
+            if (!isNaN(d1.getTime()) && !isNaN(d2.getTime()) && d2 >= d1) {
+                coldIschemiaMinutes = Math.floor((d2 - d1) / 60000);
+                coldIschemia = `${Math.floor(coldIschemiaMinutes / 60)}h ${coldIschemiaMinutes % 60}min`;
+            }
         }
 
         const newSpecimen = {
