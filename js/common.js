@@ -465,11 +465,11 @@ function openEmergencyLogModal() {
                 <div class="grid grid-cols-2 gap-sm">
                     <div class="flex flex-col gap-1">
                         <label class="text-xs font-semibold uppercase text-on-surface-variant">Clamp Time</label>
-                        <input type="datetime-local" id="emg-clamp" class="input-clinical rounded p-2 text-xs font-mono-data text-white bg-[#0F172A] border border-[#334155]">
+                        <input type="text" id="emg-clamp" placeholder="YYYY-MM-DD HH:mm" class="input-clinical rounded p-2 text-xs font-mono-data text-white bg-[#0F172A] border border-[#334155] cursor-pointer">
                     </div>
                     <div class="flex flex-col gap-1">
                         <label class="text-xs font-semibold uppercase text-on-surface-variant">Collection Time</label>
-                        <input type="datetime-local" id="emg-collect" class="input-clinical rounded p-2 text-xs font-mono-data text-white bg-[#0F172A] border border-[#334155]">
+                        <input type="text" id="emg-collect" placeholder="YYYY-MM-DD HH:mm" class="input-clinical rounded p-2 text-xs font-mono-data text-white bg-[#0F172A] border border-[#334155] cursor-pointer">
                     </div>
                 </div>
                 <div class="flex flex-col gap-1">
@@ -488,20 +488,25 @@ function openEmergencyLogModal() {
 
     modal.classList.remove('hidden');
 
+    if (typeof flatpickr !== 'undefined') {
+        flatpickr("#emg-clamp", { enableTime: true, dateFormat: "Y-m-d H:i", time_24hr: true, allowInput: true });
+        flatpickr("#emg-collect", { enableTime: true, dateFormat: "Y-m-d H:i", time_24hr: true, allowInput: true });
+    }
+
     document.getElementById('emergency-form').onsubmit = (e) => {
         e.preventDefault();
         const donorId = document.getElementById('emg-donor').value.trim().toUpperCase();
         const organ = document.getElementById('emg-organ').value;
         const preservation = document.getElementById('emg-preservation').value;
-        const clampTime = document.getElementById('emg-clamp').value;
-        const collectionTime = document.getElementById('emg-collect').value;
+        const clampTime = document.getElementById('emg-clamp').value.trim();
+        const collectionTime = document.getElementById('emg-collect').value.trim();
         const remarks = document.getElementById('emg-notes').value.trim();
 
         let coldIschemia = 'N/A';
         let coldIschemiaMinutes = 0;
         if (clampTime && collectionTime) {
-            const d1 = new Date(clampTime);
-            const d2 = new Date(collectionTime);
+            const d1 = new Date(clampTime.replace(' ', 'T'));
+            const d2 = new Date(collectionTime.replace(' ', 'T'));
             if (!isNaN(d1.getTime()) && !isNaN(d2.getTime()) && d2 >= d1) {
                 coldIschemiaMinutes = Math.floor((d2 - d1) / 60000);
                 coldIschemia = `${Math.floor(coldIschemiaMinutes / 60)}h ${coldIschemiaMinutes % 60}min`;

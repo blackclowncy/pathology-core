@@ -16,6 +16,10 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- JsBarcode for Specimen Barcodes -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <!-- Flatpickr (Strict English Datetime Picker) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
     <script id="tailwind-config">
         tailwind.config = {
@@ -171,6 +175,69 @@
             color: #003640;
             font-size: 14px;
             font-weight: bold;
+        }
+
+        /* Flatpickr Clinical Dark Theme */
+        .flatpickr-calendar {
+            background: #0F172A !important;
+            border: 1px solid #334155 !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
+            border-radius: 8px !important;
+        }
+        .flatpickr-calendar.arrowTop:before, .flatpickr-calendar.arrowTop:after {
+            border-bottom-color: #0F172A !important;
+        }
+        .flatpickr-calendar.arrowBottom:before, .flatpickr-calendar.arrowBottom:after {
+            border-top-color: #0F172A !important;
+        }
+        .flatpickr-months {
+            background: #0B1326 !important;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+        .flatpickr-current-month .flatpickr-monthDropdown-months,
+        .flatpickr-current-month input.cur-year {
+            color: #4CD7F6 !important;
+            font-weight: bold !important;
+        }
+        .flatpickr-weekdays {
+            background: #0B1326 !important;
+        }
+        span.flatpickr-weekday {
+            color: #94A3B8 !important;
+            font-weight: 600 !important;
+        }
+        .flatpickr-day {
+            color: #DAE2FD !important;
+            border-radius: 6px !important;
+        }
+        .flatpickr-day:hover {
+            background: rgba(76, 215, 246, 0.2) !important;
+            border-color: rgba(76, 215, 246, 0.4) !important;
+            color: #FFFFFF !important;
+        }
+        .flatpickr-day.selected, .flatpickr-day.selected:hover {
+            background: #4CD7F6 !important;
+            border-color: #4CD7F6 !important;
+            color: #003640 !important;
+            font-weight: bold !important;
+        }
+        .flatpickr-day.today {
+            border-color: #4CD7F6 !important;
+        }
+        .flatpickr-time {
+            background: #0B1326 !important;
+            border-top: 1px solid #334155 !important;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+        .flatpickr-time input {
+            color: #4CD7F6 !important;
+            font-family: 'JetBrains Mono', monospace !important;
+            font-weight: bold !important;
+        }
+        .flatpickr-time .flatpickr-time-separator {
+            color: #94A3B8 !important;
         }
     </style>
 </head>
@@ -515,17 +582,17 @@
                                 </div>
                             </div>
                             <div class="flex-1 flex flex-col gap-xs min-w-[220px]">
-                                <label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Clamp Time (Date & Time)</label>
+                                <label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Clamp Time</label>
                                 <div class="relative flex items-center h-full">
-                                    <span class="material-symbols-outlined absolute left-sm text-on-surface-variant text-[18px]">schedule</span>
-                                    <input class="input-clinical bg-[#0F172A] text-white w-full rounded-md py-sm pl-xl pr-sm font-mono-data text-mono-data" id="clamp-time" type="datetime-local"/>
+                                    <span class="material-symbols-outlined absolute left-sm text-on-surface-variant text-[18px] pointer-events-none">schedule</span>
+                                    <input class="input-clinical bg-[#0F172A] text-white w-full rounded-md py-sm pl-xl pr-sm font-mono-data text-mono-data cursor-pointer" id="clamp-time" type="text" placeholder="YYYY-MM-DD HH:mm"/>
                                 </div>
                             </div>
                             <div class="flex-1 flex flex-col gap-xs min-w-[220px]">
-                                <label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Collection Time (Date & Time)</label>
+                                <label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Collection Time</label>
                                 <div class="relative flex items-center h-full">
-                                    <span class="material-symbols-outlined absolute left-sm text-on-surface-variant text-[18px]">update</span>
-                                    <input class="input-clinical bg-[#0F172A] text-white w-full rounded-md py-sm pl-xl pr-sm font-mono-data text-mono-data" id="collection-time" type="datetime-local"/>
+                                    <span class="material-symbols-outlined absolute left-sm text-on-surface-variant text-[18px] pointer-events-none">update</span>
+                                    <input class="input-clinical bg-[#0F172A] text-white w-full rounded-md py-sm pl-xl pr-sm font-mono-data text-mono-data cursor-pointer" id="collection-time" type="text" placeholder="YYYY-MM-DD HH:mm"/>
                                 </div>
                             </div>
                             <div class="flex flex-col gap-xs min-w-[200px] justify-center ml-auto border-l border-outline-variant/30 pl-lg">
@@ -685,14 +752,17 @@
             }
         }
 
+        let clampPicker = null;
+        let collectionPicker = null;
+
         function calculateColdIschemia() {
-            const clampTimeInput = document.getElementById('clamp-time').value;
-            const collectionTimeInput = document.getElementById('collection-time').value;
+            const clampVal = document.getElementById('clamp-time').value.trim();
+            const collectionVal = document.getElementById('collection-time').value.trim();
             const display = document.getElementById('cold-ischemia-display');
 
-            if (clampTimeInput && collectionTimeInput) {
-                const clampDate = new Date(clampTimeInput);
-                const collectionDate = new Date(collectionTimeInput);
+            if (clampVal && collectionVal) {
+                const clampDate = new Date(clampVal.replace(' ', 'T'));
+                const collectionDate = new Date(collectionVal.replace(' ', 'T'));
 
                 if (!isNaN(clampDate.getTime()) && !isNaN(collectionDate.getTime())) {
                     const diffMs = collectionDate.getTime() - clampDate.getTime();
@@ -822,6 +892,31 @@
                 if (navLabId) navLabId.textContent = `Lab ID: ${settings.labId}`;
             }
 
+            // Initialize Flatpickr English datetime pickers
+            if (typeof flatpickr !== 'undefined') {
+                clampPicker = flatpickr("#clamp-time", {
+                    enableTime: true,
+                    dateFormat: "Y-m-d H:i",
+                    time_24hr: true,
+                    minuteIncrement: 1,
+                    allowInput: true,
+                    onChange: function() {
+                        calculateColdIschemia();
+                    }
+                });
+
+                collectionPicker = flatpickr("#collection-time", {
+                    enableTime: true,
+                    dateFormat: "Y-m-d H:i",
+                    time_24hr: true,
+                    minuteIncrement: 1,
+                    allowInput: true,
+                    onChange: function() {
+                        calculateColdIschemia();
+                    }
+                });
+            }
+
             const organButtons = document.querySelectorAll('#organ-buttons-container .organ-icon-btn');
             const hiddenOrganInput = document.getElementById('selected-organ');
             const otherOrganContainer = document.getElementById('other-organ-input');
@@ -925,8 +1020,8 @@
                 const causeOfDeath = document.getElementById('cause-of-death').value.trim();
                 const warmIschemia = parseInt(warmIschemiaInput.value, 10) || null;
                 const warmIschemiaNAValue = warmIschemiaNA.checked;
-                const clampTime = document.getElementById('clamp-time').value;
-                const collectionTime = document.getElementById('collection-time').value;
+                const clampTime = document.getElementById('clamp-time').value.trim();
+                const collectionTime = document.getElementById('collection-time').value.trim();
                 const remarks = document.getElementById('manual-remarks').value.trim();
 
                 // Collect Status options (NMP, HMP, Structure Image)
@@ -1049,8 +1144,12 @@
             document.getElementById('warm-ischemia').value = '';
             document.getElementById('warm-ischemia').disabled = false;
             document.getElementById('warm-ischemia-na').checked = false;
+
+            if (clampPicker) clampPicker.clear();
+            if (collectionPicker) collectionPicker.clear();
             document.getElementById('clamp-time').value = '';
             document.getElementById('collection-time').value = '';
+
             document.getElementById('manual-remarks').value = '';
             document.getElementById('other-organ-text').value = '';
             document.getElementById('other-organ-input').classList.add('hidden');
