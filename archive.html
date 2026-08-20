@@ -347,19 +347,18 @@
                     <table class="w-full text-left text-xs border-collapse">
                         <thead>
                             <tr class="bg-surface-container border-b border-outline-variant/50 text-[11px] text-on-surface-variant uppercase font-semibold tracking-wider">
-                                <th class="p-sm w-10 text-center">
+                                <th class="py-3 px-3 w-10 text-center">
                                     <input type="checkbox" id="select-all-specimens" class="checkbox-clinical"/>
                                 </th>
-                                <th class="p-sm">Donor ID & T-ID</th>
-                                <th class="p-sm">Organ & Side</th>
-                                <th class="p-sm">Status / Perfusion</th>
-                                <th class="p-sm">Preservation</th>
-                                <th class="p-sm">Storage Location</th>
-                                <th class="p-sm">Cold Ischemia</th>
-                                <th class="p-sm">Demographics</th>
-                                <th class="p-sm">Quality</th>
-                                <th class="p-sm">Registered</th>
-                                <th class="p-sm text-right pr-md">Actions</th>
+                                <th class="py-3 px-4">Donor ID</th>
+                                <th class="py-3 px-4">Organ & Side</th>
+                                <th class="py-3 px-4">Status / Perfusion</th>
+                                <th class="py-3 px-4">Preservation</th>
+                                <th class="py-3 px-4">Storage Location</th>
+                                <th class="py-3 px-4">Cold Ischemia</th>
+                                <th class="py-3 px-4">Demographics</th>
+                                <th class="py-3 px-4">Clamp Time & Registered</th>
+                                <th class="py-3 px-4 text-right pr-6">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="specimens-table-body" class="divide-y divide-outline-variant/20">
@@ -444,12 +443,6 @@
             tbody.innerHTML = list.map(item => {
                 const organIcon = getOrganIcon(item.organ);
                 const isSelected = selectedSpecimenIds.has(item.id);
-                
-                const statusBadge = item.status === 'Clear'
-                    ? '<span class="bg-secondary/15 text-secondary text-[11px] uppercase font-bold px-2 py-0.5 rounded border border-secondary/30 flex items-center gap-1 w-fit"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Clear</span>'
-                    : (item.status === 'Pending'
-                        ? '<span class="bg-tertiary-container/15 text-tertiary-container text-[11px] uppercase font-bold px-2 py-0.5 rounded border border-tertiary-container/30 flex items-center gap-1 w-fit"><span class="w-1.5 h-1.5 rounded-full bg-tertiary-container animate-pulse"></span> Pending</span>'
-                        : '<span class="bg-error/15 text-error text-[11px] uppercase font-bold px-2 py-0.5 rounded border border-error/30 flex items-center gap-1 w-fit"><span class="w-1.5 h-1.5 rounded-full bg-error"></span> Flagged</span>');
 
                 const statusBadgesList = [];
                 if (item.statusOptions && item.statusOptions.length) {
@@ -471,18 +464,17 @@
 
                 const statusBadges = statusBadgesList.length ? statusBadgesList.join(' ') : '<span class="text-on-surface-variant text-xs">-</span>';
 
+                const formattedClampTime = item.clampTime ? item.clampTime.replace('T', ' ') : 'N/A';
+
                 return `
                     <tr class="hover:bg-surface-container-high/40 transition-colors">
-                        <td class="p-sm text-center">
+                        <td class="py-3 px-3 text-center">
                             <input type="checkbox" class="checkbox-clinical specimen-select-cb" data-id="${item.id}" ${isSelected ? 'checked' : ''}/>
                         </td>
-                        <td class="p-sm">
-                            <div class="flex flex-col">
-                                <span class="font-mono-data text-on-surface font-bold text-xs">${item.donorId}</span>
-                                <span class="font-mono-data text-[10px] text-on-surface-variant">${item.tid || item.id}</span>
-                            </div>
+                        <td class="py-3 px-4">
+                            <span class="font-mono-data text-on-surface font-bold text-xs tracking-wide">${item.donorId}</span>
                         </td>
-                        <td class="p-sm">
+                        <td class="py-3 px-4">
                             <div class="flex items-center gap-2">
                                 <div class="w-7 h-7 rounded-lg bg-surface-container-high border border-outline-variant/40 flex items-center justify-center text-primary shrink-0">
                                     <span class="material-symbols-outlined text-[16px]">${organIcon}</span>
@@ -493,25 +485,35 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="p-sm">
+                        <td class="py-3 px-4">
                             <div class="flex flex-wrap gap-1">
                                 ${statusBadges}
                             </div>
                         </td>
-                        <td class="p-sm text-on-surface-variant font-medium text-xs">${item.preservation}</td>
-                        <td class="p-sm font-mono-data text-on-surface text-xs">${item.location || 'Unassigned'}</td>
-                        <td class="p-sm">
-                            <div class="inline-flex items-center gap-1 font-mono-data text-xs ${item.coldIschemiaMinutes > 1440 ? 'text-error font-bold bg-error/10 border border-error/30 px-1.5 py-0.5 rounded' : 'text-secondary font-medium bg-secondary/10 border border-secondary/30 px-1.5 py-0.5 rounded'}">
+                        <td class="py-3 px-4 text-on-surface-variant font-medium text-xs whitespace-nowrap">${item.preservation}</td>
+                        <td class="py-3 px-4 font-mono-data text-on-surface text-xs whitespace-nowrap">${item.location || 'Unassigned'}</td>
+                        <td class="py-3 px-4">
+                            <div class="inline-flex items-center gap-1 font-mono-data text-xs ${item.coldIschemiaMinutes > 1440 ? 'text-error font-bold bg-error/10 border border-error/30 px-2 py-0.5 rounded' : 'text-secondary font-medium bg-secondary/10 border border-secondary/30 px-2 py-0.5 rounded'} whitespace-nowrap">
                                 <span class="material-symbols-outlined text-[13px]">schedule</span>
                                 <span>${item.coldIschemia || 'N/A'}</span>
                             </div>
                         </td>
-                        <td class="p-sm text-xs text-on-surface-variant">
+                        <td class="py-3 px-4 text-xs text-on-surface-variant whitespace-nowrap">
                             ${item.age ? item.age + 'y' : '-'} • ${item.gender || '-'} • ${item.bmi ? item.bmi + ' BMI' : '-'}
                         </td>
-                        <td class="p-sm">${statusBadge}</td>
-                        <td class="p-sm text-xs text-on-surface-variant whitespace-nowrap">${formatRelativeTime(item.createdAt)}</td>
-                        <td class="p-sm text-right pr-md">
+                        <td class="py-3 px-4 text-xs">
+                            <div class="flex flex-col gap-0.5 whitespace-nowrap">
+                                <div class="flex items-center gap-1 text-on-surface font-mono-data text-xs font-semibold">
+                                    <span class="material-symbols-outlined text-[13px] text-primary">timer</span>
+                                    <span>${formattedClampTime}</span>
+                                </div>
+                                <span class="text-[10px] text-on-surface-variant flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[11px]">history</span>
+                                    ${formatRelativeTime(item.createdAt)}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="py-3 px-4 text-right pr-6">
                             <div class="flex items-center justify-end gap-1">
                                 <button onclick="openSpecimenModal('${item.id}')" class="p-1.5 rounded-md hover:bg-primary/15 text-primary hover:text-primary-fixed transition-colors" title="View Full Record">
                                     <span class="material-symbols-outlined text-[17px]">visibility</span>
