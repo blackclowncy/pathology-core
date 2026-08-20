@@ -248,60 +248,62 @@
     <div id="mobile-overlay" class="fixed inset-0 bg-black/60 z-30 hidden md:hidden" onclick="toggleMobileNav()"></div>
 
     <!-- SideNavBar -->
-    <nav id="sidebar-nav" class="bg-surface dark:bg-surface text-primary dark:text-primary font-body-md text-body-md fixed left-0 top-0 h-full w-[240px] border-r border-outline-variant dark:border-outline-variant flex flex-col py-lg px-md z-40 transform -translate-x-full md:translate-x-0 transition-transform duration-300">
-        <div class="mb-xl flex flex-col gap-sm items-start">
-            <div class="flex items-center gap-sm">
-                <span class="material-symbols-outlined text-primary text-[32px]">biotech</span>
-                <span class="font-headline-md text-headline-md text-primary dark:text-primary font-bold tracking-tight">Pathology Core</span>
+    <nav id="sidebar-nav" class="bg-surface dark:bg-surface text-primary dark:text-primary font-body-md text-body-md fixed left-0 top-0 h-full w-64 border-r border-outline-variant/40 flex flex-col py-7 px-4 z-40 transform -translate-x-full md:translate-x-0 transition-transform duration-300">
+        <div class="mb-6 flex flex-col gap-1.5 items-start px-2">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-primary/10 border border-primary/25 flex items-center justify-center text-primary">
+                    <span class="material-symbols-outlined text-[24px]">biotech</span>
+                </div>
+                <span class="text-lg text-on-surface font-bold tracking-tight">Pathology Core</span>
             </div>
-            <div class="flex items-center gap-xs text-on-surface-variant font-label-md text-label-md">
-                <span class="w-2 h-2 rounded-full bg-secondary"></span>
-                <span id="nav-lab-id">Lab ID: Tang Lab</span>
+            <div class="flex items-center gap-2 text-on-surface-variant text-xs pl-1">
+                <span class="w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_rgba(78,222,163,0.5)]"></span>
+                <span id="nav-lab-id" class="font-medium">Lab ID: Tang Lab</span>
             </div>
         </div>
         
-        <button id="btn-new-specimen" class="w-full bg-primary hover:bg-primary-fixed text-on-primary font-label-md text-label-md py-sm px-md rounded-lg flex items-center justify-center gap-sm mb-xl transition-colors shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+        <button id="btn-new-specimen" class="w-full bg-primary hover:bg-primary-fixed text-on-primary font-bold text-xs uppercase tracking-wider py-3 px-4 rounded-xl flex items-center justify-center gap-2 mb-6 transition-all shadow-[0_0_16px_rgba(6,182,212,0.25)] hover:scale-[1.02]">
             <span class="material-symbols-outlined text-[18px]">add</span>
             New Specimen
         </button>
         
-        <ul class="flex flex-col gap-xs flex-1">
+        <ul class="flex flex-col gap-2 flex-1">
             <li>
-                <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors" href="dashboard.html">
-                    <span class="material-symbols-outlined">dashboard</span>
+                <a class="flex items-center gap-3 py-2.5 px-3.5 rounded-xl text-on-surface-variant hover:bg-surface-container-high hover:text-white transition-all text-sm font-medium" href="dashboard.html">
+                    <span class="material-symbols-outlined text-[20px]">dashboard</span>
                     Dashboard
                 </a>
             </li>
             <li>
-                <a class="flex items-center gap-md py-sm px-md rounded-lg text-primary dark:text-primary border-r-2 border-primary bg-surface-container-high/50 font-semibold" href="index.html">
-                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">biotech</span>
+                <a class="flex items-center gap-3 py-2.5 px-3.5 rounded-xl text-primary border-r-2 border-primary bg-primary/10 font-semibold text-sm transition-all" href="index.html">
+                    <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">biotech</span>
                     Register
                 </a>
             </li>
             <li>
-                <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors" href="archive.html">
-                    <span class="material-symbols-outlined">inventory_2</span>
+                <a class="flex items-center gap-3 py-2.5 px-3.5 rounded-xl text-on-surface-variant hover:bg-surface-container-high hover:text-white transition-all text-sm font-medium" href="archive.html">
+                    <span class="material-symbols-outlined text-[20px]">inventory_2</span>
                     Archive
                 </a>
             </li>
             <li>
-                <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors" href="settings.html">
-                    <span class="material-symbols-outlined">settings</span>
+                <a class="flex items-center gap-3 py-2.5 px-3.5 rounded-xl text-on-surface-variant hover:bg-surface-container-high hover:text-white transition-all text-sm font-medium" href="settings.html">
+                    <span class="material-symbols-outlined text-[20px]">settings</span>
                     Settings
                 </a>
             </li>
         </ul>
         
-        <div class="mt-auto pt-lg border-t border-outline-variant/50">
-            <ul class="flex flex-col gap-xs">
+        <div class="mt-auto pt-4 border-t border-outline-variant/30">
+            <ul class="flex flex-col gap-1.5">
                 <li>
-                    <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors text-sm" href="support.html">
+                    <a class="flex items-center gap-3 py-2 px-3.5 rounded-xl text-on-surface-variant hover:bg-surface-container-high hover:text-white transition-all text-xs font-medium" href="support.html">
                         <span class="material-symbols-outlined text-[18px]">help_outline</span>
                         Support
                     </a>
                 </li>
                 <li>
-                    <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors text-sm cursor-pointer" onclick="handleSignOut()">
+                    <a class="flex items-center gap-3 py-2 px-3.5 rounded-xl text-on-surface-variant hover:bg-surface-container-high hover:text-white transition-all text-xs font-medium cursor-pointer" onclick="handleSignOut()">
                         <span class="material-symbols-outlined text-[18px]">logout</span>
                         Sign Out
                     </a>
@@ -311,7 +313,7 @@
     </nav>
 
     <!-- Main Content Wrapper -->
-    <div class="flex-1 md:ml-[240px] flex flex-col min-h-screen bg-surface-container-lowest">
+    <div class="flex-1 md:ml-64 flex flex-col min-h-screen bg-surface-container-lowest">
         
         <!-- TopAppBar -->
         <header class="bg-surface-container dark:bg-surface-container text-primary dark:text-primary font-label-md text-label-md sticky top-0 z-30 h-auto py-sm px-lg flex flex-col gap-sm justify-center border-b border-outline-variant dark:border-outline-variant">
