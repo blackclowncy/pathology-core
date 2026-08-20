@@ -215,53 +215,64 @@
         </header>
 
         <!-- Main Canvas -->
-        <main class="flex-1 p-lg lg:p-xl flex flex-col gap-lg max-w-4xl pb-32">
+        <main class="flex-1 p-6 sm:p-8 lg:p-10 flex flex-col gap-8 max-w-5xl pb-36">
             
+            <!-- Page Header Title -->
+            <div class="flex flex-col gap-1">
+                <h1 class="text-2xl sm:text-3xl font-bold text-on-surface tracking-tight flex items-center gap-2.5">
+                    <span class="material-symbols-outlined text-primary text-[28px]">settings</span>
+                    System Settings & Cloud Sync
+                </h1>
+                <p class="text-xs sm:text-sm text-on-surface-variant">Configure laboratory identity, cloud auto-backup endpoints, and local database storage.</p>
+            </div>
+
             <!-- Section 1: Laboratory Profile Configuration -->
-            <div class="glass-panel p-lg rounded-xl border border-outline-variant/40 flex flex-col gap-md glow-shadow">
-                <div class="flex items-center gap-sm border-b border-outline-variant/30 pb-sm">
-                    <span class="material-symbols-outlined text-primary text-[24px]">tune</span>
+            <div class="glass-panel p-6 sm:p-8 rounded-2xl border border-outline-variant/30 flex flex-col gap-6 glow-shadow">
+                <div class="flex items-center gap-3 border-b border-outline-variant/20 pb-4">
+                    <div class="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+                        <span class="material-symbols-outlined text-[22px]">tune</span>
+                    </div>
                     <div>
-                        <h2 class="font-headline-sm text-headline-sm font-bold text-on-surface">Laboratory Profile & ID</h2>
+                        <h2 class="text-base sm:text-lg font-bold text-on-surface">Laboratory Profile & Identification</h2>
                         <span class="text-xs text-on-surface-variant">System identifiers and clinical accreditation parameters</span>
                     </div>
                 </div>
 
-                <form id="settings-profile-form" class="grid grid-cols-1 sm:grid-cols-2 gap-md">
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs uppercase font-semibold text-on-surface-variant">Lab Station ID</label>
-                        <input id="set-lab-id" type="text" class="input-clinical rounded p-2 text-sm text-white" value="Tang Lab"/>
+                <form id="settings-profile-form" class="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs uppercase tracking-wider font-semibold text-on-surface-variant">Lab Station ID</label>
+                        <input id="set-lab-id" type="text" class="input-clinical rounded-lg px-3.5 py-2.5 text-sm text-white focus:border-primary focus:ring-1 focus:ring-primary transition-all" value="Tang Lab"/>
                     </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs uppercase font-semibold text-on-surface-variant">Institution Name</label>
-                        <input id="set-institution" type="text" class="input-clinical rounded p-2 text-sm text-white" value="Pathology & Organ Viability Core"/>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs uppercase tracking-wider font-semibold text-on-surface-variant">Institution Name</label>
+                        <input id="set-institution" type="text" class="input-clinical rounded-lg px-3.5 py-2.5 text-sm text-white focus:border-primary focus:ring-1 focus:ring-primary transition-all" value="Pathology & Organ Viability Core"/>
                     </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs uppercase font-semibold text-on-surface-variant">Lead Pathologist</label>
-                        <input id="set-pathologist" type="text" class="input-clinical rounded p-2 text-sm text-white" value="Dr. Yan Cui, MD/PhD"/>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs uppercase tracking-wider font-semibold text-on-surface-variant">Lead Pathologist</label>
+                        <input id="set-pathologist" type="text" class="input-clinical rounded-lg px-3.5 py-2.5 text-sm text-white focus:border-primary focus:ring-1 focus:ring-primary transition-all" value="Dr. Qinggong Tang / Dr. Yan Cui"/>
                     </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs uppercase font-semibold text-on-surface-variant">Ischemia Warning Threshold (Hours)</label>
-                        <input id="set-ischemia-thresh" type="number" class="input-clinical rounded p-2 text-sm text-white" value="4"/>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs uppercase tracking-wider font-semibold text-on-surface-variant">Ischemia Warning Threshold (Hours)</label>
+                        <input id="set-ischemia-thresh" type="number" class="input-clinical rounded-lg px-3.5 py-2.5 text-sm text-white focus:border-primary focus:ring-1 focus:ring-primary transition-all" value="24"/>
                     </div>
-                    <div class="sm:col-span-2 flex justify-end">
-                        <button type="submit" class="bg-primary hover:bg-primary-fixed text-on-primary font-bold px-lg py-sm rounded-lg text-xs uppercase flex items-center gap-1 transition-all">
-                            <span class="material-symbols-outlined text-[16px]">save</span> Save Configuration
+                    <div class="sm:col-span-2 flex justify-end pt-2">
+                        <button type="submit" class="bg-primary hover:bg-primary-fixed text-on-primary font-bold px-6 py-2.5 rounded-lg text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md shadow-primary/20">
+                            <span class="material-symbols-outlined text-[18px]">save</span> Save Configuration
                         </button>
                     </div>
                 </form>
             </div>
 
             <!-- Section 2: Google Drive Cloud Auto-Backup & Sync Engine -->
-            <div id="gdrive-section" class="glass-panel p-lg rounded-xl border border-primary/30 flex flex-col gap-md glow-shadow">
-                <div class="flex items-center justify-between border-b border-outline-variant/30 pb-sm">
-                    <div class="flex items-center gap-sm">
-                        <div class="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                            <span class="material-symbols-outlined text-[22px]">cloud_sync</span>
+            <div id="gdrive-section" class="glass-panel p-6 sm:p-8 rounded-2xl border border-primary/40 flex flex-col gap-6 glow-shadow">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-outline-variant/20 pb-4 gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-primary/15 border border-primary/30 flex items-center justify-center text-primary shrink-0">
+                            <span class="material-symbols-outlined text-[24px]">cloud_sync</span>
                         </div>
                         <div>
-                            <h2 class="font-headline-sm text-headline-sm font-bold text-on-surface">Google Drive Cloud Auto-Backup & Sync</h2>
-                            <span class="text-xs text-on-surface-variant">Prevent data loss on site updates by auto-saving Excel (.xlsx) & JSON snapshots to Google Drive</span>
+                            <h2 class="text-base sm:text-lg font-bold text-on-surface">Google Drive Cloud Auto-Backup & Sync</h2>
+                            <span class="text-xs text-on-surface-variant">Automatic real-time synchronization of Excel (.xlsx) and JSON backups to your Google Drive</span>
                         </div>
                     </div>
                     <div id="settings-gdrive-status-badge">
@@ -270,99 +281,108 @@
                 </div>
 
                 <!-- Webhook URL & Connection -->
-                <div class="grid grid-cols-1 gap-md">
-                    <div class="flex flex-col gap-1">
+                <div class="flex flex-col gap-4">
+                    <div class="flex flex-col gap-1.5">
                         <div class="flex items-center justify-between">
-                            <label class="text-xs uppercase font-semibold text-on-surface-variant">Google Apps Script Web App URL</label>
-                            <span id="settings-gdrive-account-label" class="text-xs text-secondary font-mono-data"></span>
+                            <label class="text-xs uppercase tracking-wider font-semibold text-on-surface-variant">Google Apps Script Web App URL</label>
+                            <span id="settings-gdrive-account-label" class="text-xs text-secondary font-mono-data font-medium"></span>
                         </div>
-                        <div class="flex flex-col sm:flex-row gap-2">
-                            <input id="set-gdrive-url" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="input-clinical rounded p-2 text-sm text-white font-mono-data flex-1"/>
-                            <button type="button" id="btn-settings-test-gdrive" class="px-4 py-2 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant text-xs text-on-surface font-semibold flex items-center justify-center gap-1 transition-colors whitespace-nowrap">
-                                <span class="material-symbols-outlined text-[16px]">network_check</span> Test Connection
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <input id="set-gdrive-url" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="input-clinical rounded-lg px-3.5 py-2.5 text-sm text-white font-mono-data flex-1 focus:border-primary focus:ring-1 focus:ring-primary transition-all"/>
+                            <button type="button" id="btn-settings-test-gdrive" class="px-5 py-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high border border-outline-variant text-xs text-on-surface font-semibold flex items-center justify-center gap-1.5 transition-colors whitespace-nowrap">
+                                <span class="material-symbols-outlined text-[17px]">network_check</span> Test Connection
                             </button>
                         </div>
                     </div>
 
-                    <!-- Auto Sync Toggle -->
-                    <label class="flex items-center gap-3 cursor-pointer bg-surface-container/50 p-md rounded-lg border border-outline-variant/30 hover:border-primary/40 transition-colors">
-                        <input id="set-gdrive-autosync" type="checkbox" class="checkbox-clinical w-4 h-4 rounded text-primary"/>
-                        <div class="flex flex-col">
-                            <span class="text-xs font-bold text-on-surface">Auto-backup on specimen changes</span>
-                            <span class="text-[11px] text-on-surface-variant">Automatically upload new Excel (.xlsx) and JSON snapshots whenever specimens are added, edited, or removed.</span>
+                    <!-- Auto Sync Toggle Card -->
+                    <label class="flex items-start sm:items-center gap-3.5 cursor-pointer bg-surface-container/60 p-4 sm:p-5 rounded-xl border border-outline-variant/30 hover:border-primary/40 transition-colors">
+                        <input id="set-gdrive-autosync" type="checkbox" class="checkbox-clinical w-4 h-4 rounded text-primary mt-0.5 sm:mt-0"/>
+                        <div class="flex flex-col gap-0.5">
+                            <span class="text-xs sm:text-sm font-bold text-on-surface">Auto-backup on specimen changes</span>
+                            <span class="text-[11px] sm:text-xs text-on-surface-variant leading-relaxed">Automatically upload updated Excel (.xlsx) and JSON snapshots whenever specimens are registered, edited, or deleted.</span>
                         </div>
                     </label>
                 </div>
 
                 <!-- Cloud Actions Bar -->
-                <div class="flex flex-wrap items-center justify-between gap-sm border-t border-outline-variant/30 pt-md">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <button type="button" id="btn-settings-sync-gdrive" class="px-4 py-2 rounded bg-primary hover:bg-primary-fixed text-on-primary font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm">
-                            <span class="material-symbols-outlined text-[16px]">cloud_upload</span> Backup to Drive Now
+                <div class="flex flex-wrap items-center justify-between gap-4 border-t border-outline-variant/20 pt-4">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <button type="button" id="btn-settings-sync-gdrive" class="px-5 py-2.5 rounded-lg bg-primary hover:bg-primary-fixed text-on-primary font-bold text-xs flex items-center gap-2 transition-all shadow-md shadow-primary/20">
+                            <span class="material-symbols-outlined text-[17px]">cloud_upload</span> Backup to Drive Now
                         </button>
-                        <button type="button" id="btn-settings-restore-gdrive" class="px-4 py-2 rounded bg-secondary/20 hover:bg-secondary/30 text-secondary border border-secondary/30 font-bold text-xs flex items-center gap-1.5 transition-colors">
-                            <span class="material-symbols-outlined text-[16px]">cloud_download</span> Restore from Google Drive
+                        <button type="button" id="btn-settings-restore-gdrive" class="px-5 py-2.5 rounded-lg bg-secondary/20 hover:bg-secondary/30 text-secondary border border-secondary/30 font-bold text-xs flex items-center gap-2 transition-colors">
+                            <span class="material-symbols-outlined text-[17px]">cloud_download</span> Restore from Google Drive
                         </button>
                     </div>
 
-                    <div class="flex items-center gap-sm">
+                    <div class="flex items-center gap-4">
                         <a id="link-open-gdrive" href="https://drive.google.com" target="_blank" class="text-xs text-primary hover:underline flex items-center gap-1 font-medium hidden">
-                            <span class="material-symbols-outlined text-[16px]">folder_open</span> Open Google Drive Folder
+                            <span class="material-symbols-outlined text-[16px]">folder_open</span> Open Drive Folder
                         </a>
-                        <button type="button" onclick="openGoogleDriveSetupModal()" class="text-xs text-on-surface-variant hover:text-white underline">
+                        <button type="button" onclick="openGoogleDriveSetupModal()" class="text-xs text-on-surface-variant hover:text-white underline transition-colors">
                             Setup Guide
                         </button>
                     </div>
                 </div>
 
-                <!-- Quick Setup Collapsible Guide -->
-                <div class="bg-surface-container-low/60 rounded-lg p-md border border-outline-variant/20 flex flex-col gap-sm text-xs">
+                <!-- Quick Setup Guide Box -->
+                <div class="bg-surface-container-low/70 rounded-xl p-5 border border-outline-variant/20 flex flex-col gap-3 text-xs leading-relaxed">
                     <div class="flex items-center justify-between">
-                        <span class="font-bold text-on-surface flex items-center gap-1 text-primary">
-                            <span class="material-symbols-outlined text-[16px]">info</span> How to set up Google Drive Cloud Sync in 1 minute:
+                        <span class="font-bold text-on-surface flex items-center gap-1.5 text-primary">
+                            <span class="material-symbols-outlined text-[17px]">info</span> How to set up Google Drive Cloud Sync:
                         </span>
-                        <button type="button" onclick="copyAppsScriptCode()" class="px-2.5 py-1 rounded bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 text-[11px] font-bold flex items-center gap-1 transition-colors">
+                        <button type="button" onclick="copyAppsScriptCode()" class="px-3 py-1.5 rounded-md bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 text-[11px] font-bold flex items-center gap-1.5 transition-colors">
                             <span class="material-symbols-outlined text-[14px]">content_copy</span> Copy Script Code
                         </button>
                     </div>
-                    <ol class="list-decimal list-inside text-on-surface-variant space-y-1 pl-1">
-                        <li>Log into your target Google Account and open <a href="https://script.google.com" target="_blank" class="text-primary underline">script.google.com</a> &rarr; click <strong>"+ New project"</strong>.</li>
-                        <li>Click <strong>"Copy Script Code"</strong> above, paste it into the editor (replace default content), and click Save.</li>
-                        <li>Click <strong>Deploy</strong> &rarr; <strong>New deployment</strong> &rarr; Type: <strong>Web app</strong> (Execute as: <em>Me</em>, Access: <em>Anyone</em>) &rarr; Copy the <strong>Web app URL</strong> and paste it into the box above.</li>
+                    <ol class="list-decimal list-inside text-on-surface-variant space-y-1.5 pl-1">
+                        <li>Log into your target Google Account and open <a href="https://script.google.com" target="_blank" class="text-primary underline font-medium">script.google.com</a> &rarr; click <strong>"+ New project"</strong>.</li>
+                        <li>Click <strong>"Copy Script Code"</strong> above, paste it into the Apps Script editor, and click 💾 Save.</li>
+                        <li>Select <strong>initialSetupAuth</strong> from the function list and click <strong>▶ Run</strong> to grant Google Drive permission.</li>
+                        <li>Click <strong>Deploy</strong> &rarr; <strong>New deployment</strong> &rarr; Type: <strong>Web app</strong> (Execute as: <em>Me</em>, Access: <em>Anyone</em>) &rarr; Copy the <strong>Web app URL</strong> and paste into the box above.</li>
                     </ol>
                 </div>
             </div>
 
             <!-- Section 3: Data Persistence & Backup -->
-            <div class="glass-panel p-lg rounded-xl border border-outline-variant/40 flex flex-col gap-md">
-                <div class="flex items-center gap-sm border-b border-outline-variant/30 pb-sm">
-                    <span class="material-symbols-outlined text-secondary text-[24px]">database</span>
+            <div class="glass-panel p-6 sm:p-8 rounded-2xl border border-outline-variant/30 flex flex-col gap-6">
+                <div class="flex items-center gap-3 border-b border-outline-variant/20 pb-4">
+                    <div class="w-10 h-10 rounded-xl bg-secondary/10 border border-secondary/20 flex items-center justify-center text-secondary shrink-0">
+                        <span class="material-symbols-outlined text-[22px]">database</span>
+                    </div>
                     <div>
-                        <h2 class="font-headline-sm text-headline-sm font-bold text-on-surface">Local Specimen Database Backup & Restore</h2>
+                        <h2 class="text-base sm:text-lg font-bold text-on-surface">Local Specimen Database Backup & Restore</h2>
                         <span class="text-xs text-on-surface-variant">Offline JSON snapshots, emergency restores, and demo seeding</span>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-md">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
                     <!-- Export Backup -->
-                    <div class="bg-surface-container p-md rounded-lg border border-outline-variant/30 flex flex-col justify-between gap-sm">
-                        <div>
-                            <h3 class="text-sm font-bold text-on-surface">Export Database Snapshot</h3>
-                            <p class="text-xs text-on-surface-variant mt-1">Download complete JSON archive containing all specimens, settings, and audit trails.</p>
+                    <div class="bg-surface-container/70 p-5 rounded-xl border border-outline-variant/30 flex flex-col justify-between gap-4">
+                        <div class="flex flex-col gap-1">
+                            <h3 class="text-sm font-bold text-on-surface flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-primary text-[18px]">file_download</span>
+                                Export Database Snapshot
+                            </h3>
+                            <p class="text-xs text-on-surface-variant leading-relaxed">Download complete JSON archive containing all specimens, settings, and audit trails for local backup.</p>
                         </div>
-                        <button onclick="SpecimenStore.exportBackupJSON(); showToast('Backup JSON downloaded', 'success');" class="px-4 py-2 rounded bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 text-xs font-bold flex items-center justify-center gap-1 transition-colors w-fit">
+                        <button onclick="SpecimenStore.exportBackupJSON(); showToast('Backup JSON downloaded', 'success');" class="px-4 py-2.5 rounded-lg bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors w-fit">
                             <span class="material-symbols-outlined text-[16px]">download</span> Download JSON Backup
                         </button>
                     </div>
 
                     <!-- Restore Backup -->
-                    <div class="bg-surface-container p-md rounded-lg border border-outline-variant/30 flex flex-col justify-between gap-sm">
-                        <div>
-                            <h3 class="text-sm font-bold text-on-surface">Restore from JSON Backup</h3>
-                            <p class="text-xs text-on-surface-variant mt-1">Upload a previously exported JSON backup to merge or restore records.</p>
+                    <div class="bg-surface-container/70 p-5 rounded-xl border border-outline-variant/30 flex flex-col justify-between gap-4">
+                        <div class="flex flex-col gap-1">
+                            <h3 class="text-sm font-bold text-on-surface flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-secondary text-[18px]">file_upload</span>
+                                Restore from JSON Backup
+                            </h3>
+                            <p class="text-xs text-on-surface-variant leading-relaxed">Upload a previously exported JSON backup file to merge or restore specimens and settings.</p>
                         </div>
                         <input type="file" id="restore-json-input" accept=".json" class="hidden"/>
-                        <button onclick="document.getElementById('restore-json-input').click()" class="px-4 py-2 rounded bg-secondary/20 hover:bg-secondary/30 text-secondary border border-secondary/30 text-xs font-bold flex items-center justify-center gap-1 transition-colors w-fit">
+                        <button onclick="document.getElementById('restore-json-input').click()" class="px-4 py-2.5 rounded-lg bg-secondary/20 hover:bg-secondary/30 text-secondary border border-secondary/30 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors w-fit">
                             <span class="material-symbols-outlined text-[16px]">upload</span> Upload JSON Backup
                         </button>
                     </div>
@@ -370,31 +390,33 @@
             </div>
 
             <!-- Section 4: Reset / Danger Zone -->
-            <div class="glass-panel p-lg rounded-xl border border-error/30 flex flex-col gap-md">
-                <div class="flex items-center gap-sm border-error/20 pb-sm">
-                    <span class="material-symbols-outlined text-error text-[24px]">dangerous</span>
+            <div class="glass-panel p-6 sm:p-8 rounded-2xl border border-error/30 flex flex-col gap-6">
+                <div class="flex items-center gap-3 border-b border-error/20 pb-4">
+                    <div class="w-10 h-10 rounded-xl bg-error/10 border border-error/20 flex items-center justify-center text-error shrink-0">
+                        <span class="material-symbols-outlined text-[22px]">dangerous</span>
+                    </div>
                     <div>
-                        <h2 class="font-headline-sm text-headline-sm font-bold text-error">Database Maintenance & Reset</h2>
-                        <span class="text-xs text-on-surface-variant">Clear all local records or restore demo sample cohort</span>
+                        <h2 class="text-base sm:text-lg font-bold text-error">Database Maintenance & Reset</h2>
+                        <span class="text-xs text-on-surface-variant">Clear all local records or restore default demo sample cohort</span>
                     </div>
                 </div>
 
-                <div class="flex flex-wrap gap-md justify-between items-center">
-                    <div class="flex flex-col">
-                        <span class="text-xs font-bold text-on-surface">Restore Demo Specimens</span>
-                        <span class="text-[11px] text-on-surface-variant">Reset database to initial test samples (Lung, Liver, Kidney, Heart, Pancreas).</span>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-container/40 p-4 sm:p-5 rounded-xl border border-outline-variant/20">
+                    <div class="flex flex-col gap-0.5">
+                        <span class="text-xs sm:text-sm font-bold text-on-surface">Restore Demo Specimens</span>
+                        <span class="text-[11px] sm:text-xs text-on-surface-variant">Reset database to initial test samples (Lung, Liver, Kidney, Heart, Pancreas).</span>
                     </div>
-                    <button onclick="handleResetDemo()" class="px-4 py-2 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant text-xs text-on-surface font-semibold transition-colors">
+                    <button onclick="handleResetDemo()" class="px-4 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high border border-outline-variant text-xs text-on-surface font-semibold transition-colors whitespace-nowrap shrink-0">
                         Reset to Demo Seed
                     </button>
                 </div>
 
-                <div class="flex flex-wrap gap-md justify-between items-center border-t border-outline-variant/20 pt-md">
-                    <div class="flex flex-col">
-                        <span class="text-xs font-bold text-error">Purge All Specimen Records</span>
-                        <span class="text-[11px] text-on-surface-variant">Permanently wipe all registered specimens and audit logs from browser memory.</span>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-error/5 p-4 sm:p-5 rounded-xl border border-error/20">
+                    <div class="flex flex-col gap-0.5">
+                        <span class="text-xs sm:text-sm font-bold text-error">Purge All Specimen Records</span>
+                        <span class="text-[11px] sm:text-xs text-on-surface-variant">Permanently wipe all registered specimens and audit logs from browser memory.</span>
                     </div>
-                    <button onclick="handleClearAll()" class="px-4 py-2 rounded bg-error/10 hover:bg-error/20 text-error border border-error/30 text-xs font-bold transition-colors">
+                    <button onclick="handleClearAll()" class="px-4 py-2 rounded-lg bg-error/15 hover:bg-error/25 text-error border border-error/30 text-xs font-bold transition-colors whitespace-nowrap shrink-0">
                         Clear All Data
                     </button>
                 </div>

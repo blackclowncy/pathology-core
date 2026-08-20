@@ -189,7 +189,7 @@ const DEFAULT_HISTORY = [
 
 // Data Store Object
 const SpecimenStore = {
-    // Initializer with backward-compatibility data migration
+    // Initializer with one-time backward-compatibility data migration
     init() {
         const legacyKeys = [
             'pathology_core_specimens',
@@ -202,7 +202,7 @@ const SpecimenStore = {
 
         let currentList = [];
         const rawCurrent = localStorage.getItem(STORAGE_KEYS.SPECIMENS);
-        if (rawCurrent) {
+        if (rawCurrent !== null) {
             try {
                 currentList = JSON.parse(rawCurrent);
                 if (!Array.isArray(currentList)) currentList = [];
@@ -211,34 +211,47 @@ const SpecimenStore = {
             }
         }
 
-        // Migrate and merge any records from legacy keys
-        let hasMergedLegacy = false;
-        const currentIds = new Set(currentList.map(s => s.id || s.donorId || s.tid));
+        // Only run legacy migration ONCE if not previously migrated
+        const alreadyMigrated = localStorage.getItem('pathology_core_migrated_v2');
+        if (!alreadyMigrated) {
+            let hasMergedLegacy = false;
+            const currentIds = new Set(currentList.map(s => s.id || s.donorId || s.tid));
 
-        for (const oldKey of legacyKeys) {
-            const rawOld = localStorage.getItem(oldKey);
-            if (rawOld) {
-                try {
-                    const oldList = JSON.parse(rawOld);
-                    if (Array.isArray(oldList)) {
-                        for (const oldItem of oldList) {
-                            const uniqueKey = oldItem.id || oldItem.donorId || oldItem.tid;
-                            if (uniqueKey && !currentIds.has(uniqueKey)) {
-                                currentList.unshift(oldItem);
-                                currentIds.add(uniqueKey);
-                                hasMergedLegacy = true;
+            for (const oldKey of legacyKeys) {
+                const rawOld = localStorage.getItem(oldKey);
+                if (rawOld) {
+                    try {
+                        const oldList = JSON.parse(rawOld);
+                        if (Array.isArray(oldList)) {
+                            for (const oldItem of oldList) {
+                                const uniqueKey = oldItem.id || oldItem.donorId || oldItem.tid;
+                                if (uniqueKey && !currentIds.has(uniqueKey)) {
+                                    currentList.unshift(oldItem);
+                                    currentIds.add(uniqueKey);
+                                    hasMergedLegacy = true;
+                                }
                             }
                         }
-                    }
-                } catch (e) {}
+                    } catch (e) {}
+                    // Delete legacy key so it never resurrects deleted records
+                    try { localStorage.removeItem(oldKey); } catch (e) {}
+                }
             }
-        }
 
-        if (currentList.length === 0) {
-            currentList = DEFAULT_SPECIMENS;
+            if (rawCurrent === null && currentList.length === 0) {
+                currentList = DEFAULT_SPECIMENS;
+            }
             localStorage.setItem(STORAGE_KEYS.SPECIMENS, JSON.stringify(currentList));
-        } else if (hasMergedLegacy || !rawCurrent) {
-            localStorage.setItem(STORAGE_KEYS.SPECIMENS, JSON.stringify(currentList));
+            localStorage.setItem('pathology_core_migrated_v2', 'true');
+        } else {
+            // Clean up any lingering legacy keys
+            for (const oldKey of legacyKeys) {
+                try { localStorage.removeItem(oldKey); } catch (e) {}
+            }
+            if (rawCurrent === null) {
+                currentList = DEFAULT_SPECIMENS;
+                localStorage.setItem(STORAGE_KEYS.SPECIMENS, JSON.stringify(currentList));
+            }
         }
 
         // Settings init & migration
@@ -348,9 +361,9 @@ const SpecimenStore = {
     // Delete specimen
     delete(id) {
         let list = this.getAll();
-        const target = list.find(item => item.id === id);
+        const target = list.find(item => item.id === id || item.donorId === id);
         if (target) {
-            list = list.filter(item => item.id !== id);
+            list = list.filter(item => item.id !== target.id && item.donorId !== target.donorId);
             localStorage.setItem(STORAGE_KEYS.SPECIMENS, JSON.stringify(list));
             this.addHistory('Deleted', target.donorId);
             this.dispatchChangeEvent();
@@ -364,7 +377,8 @@ const SpecimenStore = {
     deleteBatch(ids) {
         let list = this.getAll();
         const initialCount = list.length;
-        list = list.filter(item => !ids.includes(item.id));
+        const idSet = new Set(ids);
+        list = list.filter(item => !idSet.has(item.id) && !idSet.has(item.donorId));
         localStorage.setItem(STORAGE_KEYS.SPECIMENS, JSON.stringify(list));
         this.addHistory('Batch Deleted', `${initialCount - list.length} records`);
         this.dispatchChangeEvent();
