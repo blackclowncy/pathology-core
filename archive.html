@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Pathology Core - Specimen Archive</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <!-- Material Symbols & Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+    
+    <!-- SheetJS for Excel Export & Import -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- JsBarcode for Specimen Barcodes -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-container": "#00424f",
+                        "inverse-primary": "#00687a",
+                        "on-background": "#dae2fd",
+                        "outline-variant": "#3d494c",
+                        "on-surface-variant": "#bcc9cd",
+                        "error-container": "#93000a",
+                        "secondary-container": "#00a572",
+                        "primary-fixed-dim": "#4cd7f6",
+                        "surface-container-lowest": "#060e20",
+                        "secondary-fixed": "#6ffbbe",
+                        "surface-tint": "#4cd7f6",
+                        "on-secondary-container": "#00311f",
+                        "primary-container": "#06b6d4",
+                        "surface-container-highest": "#2d3449",
+                        "surface": "#0b1326",
+                        "error": "#ffb4ab",
+                        "tertiary-fixed": "#ffdadb",
+                        "surface-container-low": "#131b2e",
+                        "background": "#0b1326",
+                        "on-secondary-fixed-variant": "#005236",
+                        "inverse-on-surface": "#283044",
+                        "on-tertiary-fixed-variant": "#92002a",
+                        "on-error": "#690005",
+                        "on-tertiary": "#67001b",
+                        "on-error-container": "#ffdad6",
+                        "primary-fixed": "#acedff",
+                        "on-primary-fixed": "#001f26",
+                        "surface-variant": "#2d3449",
+                        "on-tertiary-container": "#7d0023",
+                        "tertiary-container": "#ff7f8b",
+                        "tertiary": "#ffb2b7",
+                        "surface-bright": "#31394d",
+                        "tertiary-fixed-dim": "#ffb2b7",
+                        "surface-dim": "#0b1326",
+                        "outline": "#869397",
+                        "on-secondary-fixed": "#002113",
+                        "secondary-fixed-dim": "#4edea3",
+                        "on-tertiary-fixed": "#40000d",
+                        "on-primary": "#003640",
+                        "secondary": "#4edea3",
+                        "on-surface": "#dae2fd",
+                        "on-primary-fixed-variant": "#004e5c",
+                        "primary": "#4cd7f6",
+                        "inverse-surface": "#dae2fd",
+                        "surface-container": "#171f33",
+                        "surface-container-high": "#222a3d",
+                        "on-secondary": "#003824"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "sm": "12px",
+                        "lg": "24px",
+                        "xs": "4px",
+                        "margin-mobile": "16px",
+                        "gutter": "20px",
+                        "base": "8px",
+                        "margin-desktop": "40px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "mono-data": ["JetBrains Mono", "monospace"],
+                        "headline-sm": ["Inter", "sans-serif"],
+                        "body-lg": ["Inter", "sans-serif"],
+                        "label-md": ["Inter", "sans-serif"],
+                        "headline-md": ["Inter", "sans-serif"],
+                        "body-md": ["Inter", "sans-serif"],
+                        "display-lg": ["Inter", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "mono-data": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                },
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0F172A; }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid #334155;
+        }
+        .glow-shadow {
+            box-shadow: 0px 4px 20px rgba(6, 182, 212, 0.15);
+        }
+        .input-clinical {
+            background-color: #0F172A !important;
+            border: 1px solid #334155 !important;
+            color: #FFFFFF !important;
+            transition: all 0.2s;
+        }
+        .input-clinical::placeholder {
+            color: #94A3B8 !important;
+        }
+        .input-clinical:focus {
+            border-color: #4cd7f6 !important;
+            box-shadow: 0 0 0 1px #4cd7f6, 0 0 10px rgba(6, 182, 212, 0.2) !important;
+            outline: none;
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        
+        .checkbox-clinical {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 1px solid #334155;
+            border-radius: 4px;
+            background-color: #0F172A;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .checkbox-clinical:checked {
+            background-color: #4cd7f6;
+            border-color: #4cd7f6;
+        }
+        .checkbox-clinical:checked::after {
+            content: '\e5ca';
+            font-family: 'Material Symbols Outlined';
+            color: #003640;
+            font-size: 14px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md text-body-md overflow-hidden selection:bg-primary-container selection:text-on-primary-container h-screen flex">
+
+    <!-- Mobile Drawer Overlay -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-black/60 z-30 hidden md:hidden" onclick="toggleMobileNav()"></div>
+
+    <!-- SideNavBar -->
+    <nav id="sidebar-nav" class="bg-surface dark:bg-surface text-primary dark:text-primary font-body-md text-body-md fixed left-0 top-0 h-full w-[240px] border-r border-outline-variant dark:border-outline-variant flex flex-col py-lg px-md z-40 transform -translate-x-full md:translate-x-0 transition-transform duration-300">
+        <div class="mb-xl flex flex-col gap-sm items-start">
+            <div class="flex items-center gap-sm">
+                <span class="material-symbols-outlined text-primary text-[32px]">biotech</span>
+                <span class="font-headline-md text-headline-md text-primary dark:text-primary font-bold tracking-tight">Pathology Core</span>
+            </div>
+            <div class="flex items-center gap-xs text-on-surface-variant font-label-md text-label-md">
+                <span class="w-2 h-2 rounded-full bg-secondary"></span>
+                <span id="nav-lab-id">Lab ID: 772-B</span>
+            </div>
+        </div>
+        
+        <a href="index.html" class="w-full bg-primary hover:bg-primary-fixed text-on-primary font-label-md text-label-md py-sm px-md rounded-lg flex items-center justify-center gap-sm mb-xl transition-colors shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+            <span class="material-symbols-outlined text-[18px]">add</span>
+            New Specimen
+        </a>
+        
+        <ul class="flex flex-col gap-xs flex-1">
+            <li>
+                <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors" href="dashboard.html">
+                    <span class="material-symbols-outlined">dashboard</span>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors" href="index.html">
+                    <span class="material-symbols-outlined">biotech</span>
+                    Register
+                </a>
+            </li>
+            <li>
+                <a class="flex items-center gap-md py-sm px-md rounded-lg text-primary dark:text-primary border-r-2 border-primary bg-surface-container-high/50 font-semibold" href="archive.html">
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+                    Archive
+                </a>
+            </li>
+            <li>
+                <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors" href="settings.html">
+                    <span class="material-symbols-outlined">settings</span>
+                    Settings
+                </a>
+            </li>
+        </ul>
+        
+        <div class="mt-auto pt-lg border-t border-outline-variant/50">
+            <ul class="flex flex-col gap-xs">
+                <li>
+                    <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors text-sm" href="support.html">
+                        <span class="material-symbols-outlined text-[18px]">help_outline</span>
+                        Support
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors text-sm cursor-pointer" onclick="handleSignOut()">
+                        <span class="material-symbols-outlined text-[18px]">logout</span>
+                        Sign Out
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content Wrapper -->
+    <div class="flex-1 md:ml-[240px] flex flex-col h-full bg-surface-container-lowest overflow-hidden">
+        
+        <!-- TopAppBar -->
+        <header class="bg-surface-container dark:bg-surface-container text-primary dark:text-primary font-label-md text-label-md sticky top-0 z-30 h-auto py-sm px-lg flex flex-col gap-sm justify-center border-b border-outline-variant dark:border-outline-variant">
+            <div class="flex justify-between items-center w-full">
+                <div class="flex items-center gap-md flex-1 max-w-2xl">
+                    <button class="md:hidden text-primary p-1" onclick="toggleMobileNav()">
+                        <span class="material-symbols-outlined text-[24px]">menu</span>
+                    </button>
+                    <div class="relative w-full max-w-md">
+                        <span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+                        <input id="archive-search" class="w-full bg-[#0F172A] border border-[#334155] rounded-lg py-xs pl-xl pr-sm text-white text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-colors h-9 placeholder:text-[#94A3B8]" placeholder="Search Donor ID, Organ, Location, Remarks..." type="text"/>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-lg">
+                    <div class="hidden md:flex items-center gap-md">
+                        <a class="text-on-surface-variant hover:text-primary transition-colors" href="analytics.html">Lab Analytics</a>
+                        <a class="text-on-surface-variant hover:text-primary transition-colors" href="resources.html">Resource Manager</a>
+                    </div>
+                    <div class="flex items-center gap-sm border-l border-outline-variant pl-lg ml-sm">
+                        <button class="text-on-surface-variant hover:text-primary transition-colors relative" onclick="toggleNotificationsPopup()" title="Notifications">
+                            <span class="material-symbols-outlined">notifications</span>
+                            <span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border border-surface-container"></span>
+                        </button>
+                        <button class="text-on-surface-variant hover:text-primary transition-colors" onclick="toggleHistoryPopup()" title="Audit Log">
+                            <span class="material-symbols-outlined">history</span>
+                        </button>
+                        <button onclick="openEmergencyLogModal()" class="bg-error/10 text-error hover:bg-error/20 border border-error/30 px-sm py-xs rounded text-xs font-bold uppercase tracking-wider ml-sm transition-colors">
+                            Emergency Log
+                        </button>
+                        <div onclick="openProfileModal()" class="w-8 h-8 rounded-full overflow-hidden ml-md border-2 border-outline-variant hover:border-primary transition-colors cursor-pointer" title="Pathologist Profile">
+                            <img alt="Pathologist Portrait" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRN3y3HLc7R3kvx0_TjauE59FPhgewDG2LcjqwC2WlGUH_TmrieMeYy4GcNXMvRKubMPtFFFWbuHPKIdeI7V_SqSyZ2ElEEY7V1IK5ebfdDWjLfWRFo2Fxm_GoMQ5wrR0VUYsMG-rHNMAxB6UeBBOs8feKc8v87_JkuBa3twVYFRyYxBkgG7YfBW5qwrDJ25Y2NM1Ti8sVUHi8kn2QdrqU_RGe3KB1511_p7NZ5YjaMJcpxiZIpTX5QKSAdQ92ij0Cxg6F2ciqasY"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto p-lg lg:p-xl custom-scrollbar flex flex-col gap-lg">
+            
+            <!-- Header Summary Stats Banner -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-md">
+                <div class="glass-panel p-md rounded-xl border border-outline-variant/30 flex items-center gap-md">
+                    <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined text-[28px]">inventory_2</span>
+                    </div>
+                    <div>
+                        <span class="text-xs uppercase text-on-surface-variant font-semibold">Total Archived</span>
+                        <h3 id="stat-total" class="font-headline-md text-headline-md font-bold text-on-surface">--</h3>
+                    </div>
+                </div>
+                <div class="glass-panel p-md rounded-xl border border-outline-variant/30 flex items-center gap-md">
+                    <div class="w-12 h-12 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
+                        <span class="material-symbols-outlined text-[28px]">ac_unit</span>
+                    </div>
+                    <div>
+                        <span class="text-xs uppercase text-on-surface-variant font-semibold">-80°C Frozen</span>
+                        <h3 id="stat-frozen" class="font-headline-md text-headline-md font-bold text-secondary">--</h3>
+                    </div>
+                </div>
+                <div class="glass-panel p-md rounded-xl border border-outline-variant/30 flex items-center gap-md">
+                    <div class="w-12 h-12 rounded-lg bg-tertiary-container/10 flex items-center justify-center text-tertiary-container">
+                        <span class="material-symbols-outlined text-[28px]">science</span>
+                    </div>
+                    <div>
+                        <span class="text-xs uppercase text-on-surface-variant font-semibold">Fixed / Processing</span>
+                        <h3 id="stat-fixed" class="font-headline-md text-headline-md font-bold text-tertiary-container">--</h3>
+                    </div>
+                </div>
+                <div class="glass-panel p-md rounded-xl border border-outline-variant/30 flex items-center gap-md">
+                    <div class="w-12 h-12 rounded-lg bg-error/10 flex items-center justify-center text-error">
+                        <span class="material-symbols-outlined text-[28px]">warning</span>
+                    </div>
+                    <div>
+                        <span class="text-xs uppercase text-on-surface-variant font-semibold">Flagged (>4h Isch)</span>
+                        <h3 id="stat-flagged" class="font-headline-md text-headline-md font-bold text-error">--</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters & Batch Toolbar -->
+            <div class="glass-panel p-md rounded-xl border border-outline-variant/40 flex flex-col md:flex-row justify-between items-center gap-md">
+                <!-- Filter Pills -->
+                <div class="flex flex-wrap items-center gap-xs w-full md:w-auto" id="organ-filter-pills">
+                    <button class="filter-pill active px-3 py-1 rounded-md text-xs font-semibold bg-primary text-on-primary" data-organ="">All Organs</button>
+                    <button class="filter-pill px-3 py-1 rounded-md text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface-variant" data-organ="Kidney">Kidney</button>
+                    <button class="filter-pill px-3 py-1 rounded-md text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface-variant" data-organ="Liver">Liver</button>
+                    <button class="filter-pill px-3 py-1 rounded-md text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface-variant" data-organ="Lung">Lung</button>
+                    <button class="filter-pill px-3 py-1 rounded-md text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface-variant" data-organ="Heart">Heart</button>
+                    <button class="filter-pill px-3 py-1 rounded-md text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface-variant" data-organ="Pancreas">Pancreas</button>
+                    <button class="filter-pill px-3 py-1 rounded-md text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface-variant" data-organ="Spleen">Spleen</button>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center gap-sm ml-auto">
+                    <button id="btn-batch-export" class="px-md py-xs rounded border border-outline-variant text-on-surface-variant hover:text-primary hover:border-primary transition-colors text-xs font-semibold flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[16px]">download</span> Export All
+                    </button>
+                    <button id="btn-batch-delete" class="px-md py-xs rounded border border-error/30 text-error hover:bg-error/10 transition-colors text-xs font-semibold flex items-center gap-1 hidden">
+                        <span class="material-symbols-outlined text-[16px]">delete</span> Delete Selected (<span id="selected-count">0</span>)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Specimen Table -->
+            <div class="glass-panel rounded-xl border border-outline-variant/40 overflow-hidden flex flex-col glow-shadow">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead>
+                            <tr class="bg-surface-container border-b border-outline-variant text-xs text-on-surface-variant uppercase font-semibold">
+                                <th class="p-sm w-10 text-center">
+                                    <input type="checkbox" id="select-all-specimens" class="checkbox-clinical"/>
+                                </th>
+                                <th class="p-sm">Donor ID & Tracking ID</th>
+                                <th class="p-sm">Organ</th>
+                                <th class="p-sm">Preservation</th>
+                                <th class="p-sm">Storage Location</th>
+                                <th class="p-sm">Cold Ischemia</th>
+                                <th class="p-sm">Demographics</th>
+                                <th class="p-sm">Status</th>
+                                <th class="p-sm">Registered</th>
+                                <th class="p-sm text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="specimens-table-body" class="divide-y divide-outline-variant/20">
+                            <!-- Dynamically populated rows -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State -->
+                <div id="table-empty-state" class="p-xl text-center flex flex-col items-center gap-sm hidden">
+                    <span class="material-symbols-outlined text-on-surface-variant text-[48px]">search_off</span>
+                    <p class="text-sm text-on-surface-variant">No specimens match your search and filter criteria.</p>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Storage & Common Logic Scripts -->
+    <script src="js/storage.js"></script>
+    <script src="js/common.js"></script>
+
+    <script>
+        let currentFilterOrgan = '';
+        let selectedSpecimenIds = new Set();
+
+        function toggleMobileNav() {
+            const sidebar = document.getElementById('sidebar-nav');
+            const overlay = document.getElementById('mobile-overlay');
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        function handleSignOut() {
+            if (confirm('Sign out of Pathology Core session?')) {
+                showToast('Signed out of session.', 'info');
+            }
+        }
+
+        function updateStats() {
+            const list = SpecimenStore.getAll();
+            document.getElementById('stat-total').textContent = list.length;
+            document.getElementById('stat-frozen').textContent = list.filter(i => i.preservation === '-80C Frozen').length;
+            document.getElementById('stat-fixed').textContent = list.filter(i => i.preservation === 'Fixed').length;
+            document.getElementById('stat-flagged').textContent = list.filter(i => i.status === 'Flagged' || (i.coldIschemiaMinutes && i.coldIschemiaMinutes > 240)).length;
+        }
+
+        function renderArchiveTable() {
+            const query = document.getElementById('archive-search').value.trim();
+            const list = SpecimenStore.filter({ query, organ: currentFilterOrgan });
+            const tbody = document.getElementById('specimens-table-body');
+            const emptyState = document.getElementById('table-empty-state');
+
+            updateStats();
+
+            if (list.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            tbody.innerHTML = list.map(item => {
+                const organIcon = getOrganIcon(item.organ);
+                const isSelected = selectedSpecimenIds.has(item.id);
+                
+                const statusBadge = item.status === 'Clear'
+                    ? '<span class="bg-secondary/10 text-secondary text-xs uppercase font-bold px-2 py-0.5 rounded border border-secondary/20 flex items-center gap-1 w-fit"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Clear</span>'
+                    : (item.status === 'Pending'
+                        ? '<span class="bg-tertiary-container/10 text-tertiary-container text-xs uppercase font-bold px-2 py-0.5 rounded border border-tertiary-container/20 flex items-center gap-1 w-fit"><span class="w-1.5 h-1.5 rounded-full bg-tertiary-container animate-pulse"></span> Pending</span>'
+                        : '<span class="bg-error/10 text-error text-xs uppercase font-bold px-2 py-0.5 rounded border border-error/20 flex items-center gap-1 w-fit"><span class="w-1.5 h-1.5 rounded-full bg-error"></span> Flagged</span>');
+
+                return `
+                    <tr class="hover:bg-surface-container-high/40 transition-colors">
+                        <td class="p-sm text-center">
+                            <input type="checkbox" class="checkbox-clinical specimen-select-cb" data-id="${item.id}" ${isSelected ? 'checked' : ''}/>
+                        </td>
+                        <td class="p-sm">
+                            <div class="flex flex-col">
+                                <span class="font-mono-data text-on-surface font-bold">${item.donorId}</span>
+                                <span class="font-mono-data text-[11px] text-on-surface-variant">${item.tid || item.id}</span>
+                            </div>
+                        </td>
+                        <td class="p-sm">
+                            <div class="flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-primary text-[18px]">${organIcon}</span>
+                                <span class="text-on-surface font-medium">${item.organ}</span>
+                            </div>
+                        </td>
+                        <td class="p-sm text-on-surface-variant font-medium">${item.preservation}</td>
+                        <td class="p-sm font-mono-data text-on-surface">${item.location || 'Unassigned'}</td>
+                        <td class="p-sm font-mono-data ${item.coldIschemiaMinutes > 240 ? 'text-error font-bold' : 'text-secondary'}">
+                            ${item.coldIschemia || 'N/A'}
+                        </td>
+                        <td class="p-sm text-xs text-on-surface-variant">
+                            ${item.age ? item.age + 'y' : '-'} • ${item.gender || '-'} • ${item.bmi ? item.bmi + ' BMI' : '-'}
+                        </td>
+                        <td class="p-sm">${statusBadge}</td>
+                        <td class="p-sm text-xs text-on-surface-variant">${formatRelativeTime(item.createdAt)}</td>
+                        <td class="p-sm text-right">
+                            <div class="flex items-center justify-end gap-1">
+                                <button onclick="openSpecimenModal('${item.id}')" class="p-1 rounded hover:bg-surface-container-high text-primary" title="View Full Record">
+                                    <span class="material-symbols-outlined text-[18px]">visibility</span>
+                                </button>
+                                <button onclick="printSpecimenLabel('${item.id}')" class="p-1 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-white" title="Print Tube Label">
+                                    <span class="material-symbols-outlined text-[18px]">print</span>
+                                </button>
+                                <button onclick="confirmDeleteSpecimen('${item.id}')" class="p-1 rounded hover:bg-error/20 text-error" title="Delete">
+                                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Bind Individual Checkboxes
+            document.querySelectorAll('.specimen-select-cb').forEach(cb => {
+                cb.addEventListener('change', (e) => {
+                    const id = cb.getAttribute('data-id');
+                    if (cb.checked) {
+                        selectedSpecimenIds.add(id);
+                    } else {
+                        selectedSpecimenIds.delete(id);
+                    }
+                    updateBatchDeleteButton();
+                });
+            });
+        }
+
+        function updateBatchDeleteButton() {
+            const btn = document.getElementById('btn-batch-delete');
+            const countEl = document.getElementById('selected-count');
+            if (selectedSpecimenIds.size > 0) {
+                btn.classList.remove('hidden');
+                countEl.textContent = selectedSpecimenIds.size;
+            } else {
+                btn.classList.add('hidden');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check query param from global search
+            const urlParams = new URLSearchParams(window.location.search);
+            const q = urlParams.get('q');
+            if (q) {
+                document.getElementById('archive-search').value = q;
+            }
+
+            renderArchiveTable();
+
+            // Search input listener
+            document.getElementById('archive-search').addEventListener('input', renderArchiveTable);
+
+            // Organ Filter Pills
+            const pills = document.querySelectorAll('#organ-filter-pills .filter-pill');
+            pills.forEach(pill => {
+                pill.addEventListener('click', () => {
+                    pills.forEach(p => {
+                        p.className = 'filter-pill px-3 py-1 rounded-md text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface-variant';
+                    });
+                    pill.className = 'filter-pill active px-3 py-1 rounded-md text-xs font-semibold bg-primary text-on-primary';
+                    currentFilterOrgan = pill.getAttribute('data-organ');
+                    renderArchiveTable();
+                });
+            });
+
+            // Select All Checkbox
+            document.getElementById('select-all-specimens').addEventListener('change', (e) => {
+                const checked = e.target.checked;
+                const list = SpecimenStore.filter({ query: document.getElementById('archive-search').value.trim(), organ: currentFilterOrgan });
+                if (checked) {
+                    list.forEach(item => selectedSpecimenIds.add(item.id));
+                } else {
+                    selectedSpecimenIds.clear();
+                }
+                renderArchiveTable();
+                updateBatchDeleteButton();
+            });
+
+            // Batch Export Button
+            document.getElementById('btn-batch-export').addEventListener('click', () => {
+                SpecimenStore.exportToExcel(null, 'Pathology_Core_Archive_Export.xlsx');
+                showToast('Exported all specimens to Excel', 'success');
+            });
+
+            // Batch Delete Button
+            document.getElementById('btn-batch-delete').addEventListener('click', () => {
+                if (confirm(`Delete ${selectedSpecimenIds.size} selected specimen records permanently?`)) {
+                    SpecimenStore.deleteBatch(Array.from(selectedSpecimenIds));
+                    selectedSpecimenIds.clear();
+                    showToast('Selected records deleted', 'success');
+                    renderArchiveTable();
+                    updateBatchDeleteButton();
+                }
+            });
+
+            // Listen for store change events
+            window.addEventListener('pathology_store_change', renderArchiveTable);
+        });
+    </script>
+</body>
+</html>

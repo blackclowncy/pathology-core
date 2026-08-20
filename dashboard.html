@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Pathology Core - Lab Dashboard</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <!-- Material Symbols & Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+    
+    <!-- Chart.js for Interactive Visual Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS for Excel Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-container": "#00424f",
+                        "inverse-primary": "#00687a",
+                        "on-background": "#dae2fd",
+                        "outline-variant": "#3d494c",
+                        "on-surface-variant": "#bcc9cd",
+                        "error-container": "#93000a",
+                        "secondary-container": "#00a572",
+                        "primary-fixed-dim": "#4cd7f6",
+                        "surface-container-lowest": "#060e20",
+                        "secondary-fixed": "#6ffbbe",
+                        "surface-tint": "#4cd7f6",
+                        "on-secondary-container": "#00311f",
+                        "primary-container": "#06b6d4",
+                        "surface-container-highest": "#2d3449",
+                        "surface": "#0b1326",
+                        "error": "#ffb4ab",
+                        "tertiary-fixed": "#ffdadb",
+                        "surface-container-low": "#131b2e",
+                        "background": "#0b1326",
+                        "on-secondary-fixed-variant": "#005236",
+                        "inverse-on-surface": "#283044",
+                        "on-tertiary-fixed-variant": "#92002a",
+                        "on-error": "#690005",
+                        "on-tertiary": "#67001b",
+                        "on-error-container": "#ffdad6",
+                        "primary-fixed": "#acedff",
+                        "on-primary-fixed": "#001f26",
+                        "surface-variant": "#2d3449",
+                        "on-tertiary-container": "#7d0023",
+                        "tertiary-container": "#ff7f8b",
+                        "tertiary": "#ffb2b7",
+                        "surface-bright": "#31394d",
+                        "tertiary-fixed-dim": "#ffb2b7",
+                        "surface-dim": "#0b1326",
+                        "outline": "#869397",
+                        "on-secondary-fixed": "#002113",
+                        "secondary-fixed-dim": "#4edea3",
+                        "on-tertiary-fixed": "#40000d",
+                        "on-primary": "#003640",
+                        "secondary": "#4edea3",
+                        "on-surface": "#dae2fd",
+                        "on-primary-fixed-variant": "#004e5c",
+                        "primary": "#4cd7f6",
+                        "inverse-surface": "#dae2fd",
+                        "surface-container": "#171f33",
+                        "surface-container-high": "#222a3d",
+                        "on-secondary": "#003824"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "sm": "12px",
+                        "lg": "24px",
+                        "xs": "4px",
+                        "margin-mobile": "16px",
+                        "gutter": "20px",
+                        "base": "8px",
+                        "margin-desktop": "40px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "mono-data": ["JetBrains Mono", "monospace"],
+                        "headline-sm": ["Inter", "sans-serif"],
+                        "body-lg": ["Inter", "sans-serif"],
+                        "label-md": ["Inter", "sans-serif"],
+                        "headline-md": ["Inter", "sans-serif"],
+                        "body-md": ["Inter", "sans-serif"],
+                        "display-lg": ["Inter", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "mono-data": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                },
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0F172A; }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid #334155;
+        }
+        .glow-shadow {
+            box-shadow: 0px 4px 20px rgba(6, 182, 212, 0.15);
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md text-body-md overflow-hidden selection:bg-primary-container selection:text-on-primary-container h-screen flex">
+
+    <!-- Mobile Drawer Overlay -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-black/60 z-30 hidden md:hidden" onclick="toggleMobileNav()"></div>
+
+    <!-- SideNavBar -->
+    <nav id="sidebar-nav" class="bg-surface dark:bg-surface text-primary dark:text-primary font-body-md text-body-md fixed left-0 top-0 h-full w-[240px] border-r border-outline-variant dark:border-outline-variant flex flex-col py-lg px-md z-40 transform -translate-x-full md:translate-x-0 transition-transform duration-300">
+        <div class="mb-xl flex flex-col gap-sm items-start">
+            <div class="flex items-center gap-sm">
+                <span class="material-symbols-outlined text-primary text-[32px]">biotech</span>
+                <span class="font-headline-md text-headline-md text-primary dark:text-primary font-bold tracking-tight">Pathology Core</span>
+            </div>
+            <div class="flex items-center gap-xs text-on-surface-variant font-label-md text-label-md">
+                <span class="w-2 h-2 rounded-full bg-secondary"></span>
+                <span id="nav-lab-id">Lab ID: 772-B</span>
+            </div>
+        </div>
+        
+        <a href="index.html" class="w-full bg-primary hover:bg-primary-fixed text-on-primary font-label-md text-label-md py-sm px-md rounded-lg flex items-center justify-center gap-sm mb-xl transition-colors shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+            <span class="material-symbols-outlined text-[18px]">add</span>
+            New Specimen
+        </a>
+        
+        <ul class="flex flex-col gap-xs flex-1">
+            <li>
+                <a class="flex items-center gap-md py-sm px-md rounded-lg text-primary dark:text-primary border-r-2 border-primary bg-surface-container-high/50 font-semibold" href="dashboard.html">
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors" href="index.html">
+                    <span class="material-symbols-outlined">biotech</span>
+                    Register
+                </a>
+            </li>
+            <li>
+                <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors" href="archive.html">
+                    <span class="material-symbols-outlined">inventory_2</span>
+                    Archive
+                </a>
+            </li>
+            <li>
+                <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors" href="settings.html">
+                    <span class="material-symbols-outlined">settings</span>
+                    Settings
+                </a>
+            </li>
+        </ul>
+        
+        <div class="mt-auto pt-lg border-t border-outline-variant/50">
+            <ul class="flex flex-col gap-xs">
+                <li>
+                    <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors text-sm" href="support.html">
+                        <span class="material-symbols-outlined text-[18px]">help_outline</span>
+                        Support
+                    </a>
+                </li>
+                <li>
+                    <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors text-sm cursor-pointer" onclick="handleSignOut()">
+                        <span class="material-symbols-outlined text-[18px]">logout</span>
+                        Sign Out
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content Wrapper -->
+    <div class="flex-1 md:ml-[240px] flex flex-col h-full bg-surface-container-lowest overflow-hidden">
+        
+        <!-- TopAppBar -->
+        <header class="bg-surface-container dark:bg-surface-container text-primary dark:text-primary font-label-md text-label-md sticky top-0 z-30 h-auto py-sm px-lg flex justify-between items-center border-b border-outline-variant dark:border-outline-variant">
+            <div class="flex items-center gap-md">
+                <button class="md:hidden text-primary p-1" onclick="toggleMobileNav()">
+                    <span class="material-symbols-outlined text-[24px]">menu</span>
+                </button>
+                <h1 class="font-headline-sm text-headline-sm font-bold text-on-surface">Pathology Overview & Laboratory Metrics</h1>
+            </div>
+
+            <div class="flex items-center gap-lg">
+                <div class="hidden md:flex items-center gap-md">
+                    <a class="text-on-surface-variant hover:text-primary transition-colors" href="analytics.html">Lab Analytics</a>
+                    <a class="text-on-surface-variant hover:text-primary transition-colors" href="resources.html">Resource Manager</a>
+                </div>
+                <div class="flex items-center gap-sm border-l border-outline-variant pl-lg ml-sm">
+                    <button class="text-on-surface-variant hover:text-primary transition-colors relative" onclick="toggleNotificationsPopup()" title="Notifications">
+                        <span class="material-symbols-outlined">notifications</span>
+                        <span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border border-surface-container"></span>
+                    </button>
+                    <button class="text-on-surface-variant hover:text-primary transition-colors" onclick="toggleHistoryPopup()" title="Audit Log">
+                        <span class="material-symbols-outlined">history</span>
+                    </button>
+                    <button onclick="openEmergencyLogModal()" class="bg-error/10 text-error hover:bg-error/20 border border-error/30 px-sm py-xs rounded text-xs font-bold uppercase tracking-wider ml-sm transition-colors">
+                        Emergency Log
+                    </button>
+                    <div onclick="openProfileModal()" class="w-8 h-8 rounded-full overflow-hidden ml-md border-2 border-outline-variant hover:border-primary transition-colors cursor-pointer" title="Pathologist Profile">
+                        <img alt="Pathologist Portrait" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRN3y3HLc7R3kvx0_TjauE59FPhgewDG2LcjqwC2WlGUH_TmrieMeYy4GcNXMvRKubMPtFFFWbuHPKIdeI7V_SqSyZ2ElEEY7V1IK5ebfdDWjLfWRFo2Fxm_GoMQ5wrR0VUYsMG-rHNMAxB6UeBBOs8feKc8v87_JkuBa3twVYFRyYxBkgG7YfBW5qwrDJ25Y2NM1Ti8sVUHi8kn2QdrqU_RGe3KB1511_p7NZ5YjaMJcpxiZIpTX5QKSAdQ92ij0Cxg6F2ciqasY"/>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Canvas -->
+        <main class="flex-1 overflow-y-auto p-lg lg:p-xl custom-scrollbar flex flex-col gap-lg">
+            
+            <!-- Top Metric Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md">
+                <div class="glass-panel p-lg rounded-xl border border-outline-variant/30 flex items-center justify-between glow-shadow">
+                    <div>
+                        <span class="text-xs uppercase tracking-wider text-on-surface-variant font-semibold">Total Specimens</span>
+                        <h2 id="dash-total" class="font-display-lg text-display-lg font-bold text-on-surface">--</h2>
+                        <span class="text-xs text-secondary flex items-center gap-1 mt-1">
+                            <span class="material-symbols-outlined text-[14px]">trending_up</span> Live Active
+                        </span>
+                    </div>
+                    <div class="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined text-[32px]">biotech</span>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-lg rounded-xl border border-outline-variant/30 flex items-center justify-between glow-shadow">
+                    <div>
+                        <span class="text-xs uppercase tracking-wider text-on-surface-variant font-semibold">Cryo-Preserved (-80°C)</span>
+                        <h2 id="dash-frozen" class="font-display-lg text-display-lg font-bold text-primary">--</h2>
+                        <span class="text-xs text-on-surface-variant mt-1">Storage S1-S3 Freezers</span>
+                    </div>
+                    <div class="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined text-[32px]">ac_unit</span>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-lg rounded-xl border border-outline-variant/30 flex items-center justify-between glow-shadow">
+                    <div>
+                        <span class="text-xs uppercase tracking-wider text-on-surface-variant font-semibold">Avg Cold Ischemia</span>
+                        <h2 id="dash-avg-isch" class="font-display-lg text-display-lg font-bold text-secondary">--</h2>
+                        <span class="text-xs text-secondary mt-1">Within optimal viability</span>
+                    </div>
+                    <div class="w-14 h-14 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary">
+                        <span class="material-symbols-outlined text-[32px]">schedule</span>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-lg rounded-xl border border-outline-variant/30 flex items-center justify-between glow-shadow">
+                    <div>
+                        <span class="text-xs uppercase tracking-wider text-on-surface-variant font-semibold">Flagged / Urgent</span>
+                        <h2 id="dash-flagged" class="font-display-lg text-display-lg font-bold text-error">--</h2>
+                        <span class="text-xs text-error mt-1">> 4h Ischemia or Critical</span>
+                    </div>
+                    <div class="w-14 h-14 rounded-xl bg-error/10 flex items-center justify-center text-error">
+                        <span class="material-symbols-outlined text-[32px]">warning</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section (2 Columns) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-lg">
+                <!-- Organ Breakdown Bar Chart -->
+                <div class="lg:col-span-8 glass-panel p-lg rounded-xl border border-outline-variant/30 flex flex-col gap-md glow-shadow">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">Specimens by Organ Type</h3>
+                            <span class="text-xs text-on-surface-variant">Distribution across transplant and histology cores</span>
+                        </div>
+                    </div>
+                    <div class="relative h-64 w-full">
+                        <canvas id="organChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Preservation Donut Chart -->
+                <div class="lg:col-span-4 glass-panel p-lg rounded-xl border border-outline-variant/30 flex flex-col gap-md glow-shadow">
+                    <div>
+                        <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">Preservation Method</h3>
+                        <span class="text-xs text-on-surface-variant">-80°C Frozen vs Fixed</span>
+                    </div>
+                    <div class="relative h-64 w-full flex items-center justify-center">
+                        <canvas id="preservationChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Row: Quick Actions & Recent Specimen Feed -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-lg">
+                <!-- Quick Actions Bento -->
+                <div class="lg:col-span-4 glass-panel p-lg rounded-xl border border-outline-variant/30 flex flex-col gap-md">
+                    <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">Quick Actions</h3>
+                    <div class="grid grid-cols-1 gap-sm">
+                        <a href="index.html" class="p-md rounded-lg bg-surface-container hover:bg-surface-container-high border border-outline-variant flex items-center gap-md transition-all group">
+                            <span class="material-symbols-outlined text-primary text-[28px] group-hover:scale-110 transition-transform">add_circle</span>
+                            <div>
+                                <h4 class="text-sm font-bold text-on-surface">Register Specimen</h4>
+                                <span class="text-xs text-on-surface-variant">Log new donor biopsy or tissue</span>
+                            </div>
+                        </a>
+                        <a href="archive.html" class="p-md rounded-lg bg-surface-container hover:bg-surface-container-high border border-outline-variant flex items-center gap-md transition-all group">
+                            <span class="material-symbols-outlined text-secondary text-[28px] group-hover:scale-110 transition-transform">folder_open</span>
+                            <div>
+                                <h4 class="text-sm font-bold text-on-surface">Browse Archive</h4>
+                                <span class="text-xs text-on-surface-variant">Full database search & filters</span>
+                            </div>
+                        </a>
+                        <button onclick="openEmergencyLogModal()" class="p-md rounded-lg bg-error/10 hover:bg-error/20 border border-error/30 flex items-center gap-md transition-all text-left group">
+                            <span class="material-symbols-outlined text-error text-[28px] group-hover:scale-110 transition-transform">crisis_alert</span>
+                            <div>
+                                <h4 class="text-sm font-bold text-error">Emergency Quick Log</h4>
+                                <span class="text-xs text-on-surface-variant">Urgent time-critical organ entry</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Priority Specimen Log -->
+                <div class="lg:col-span-8 glass-panel p-lg rounded-xl border border-outline-variant/30 flex flex-col gap-md">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">Priority & Recent Specimen Activity</h3>
+                        <a href="archive.html" class="text-xs text-primary hover:underline flex items-center gap-1">
+                            View All <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                        </a>
+                    </div>
+                    <div id="dash-recent-list" class="flex flex-col gap-sm overflow-y-auto max-h-72 pr-xs">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Storage & Common Logic Scripts -->
+    <script src="js/storage.js"></script>
+    <script src="js/common.js"></script>
+
+    <script>
+        let organChartInstance = null;
+        let preservationChartInstance = null;
+
+        function toggleMobileNav() {
+            const sidebar = document.getElementById('sidebar-nav');
+            const overlay = document.getElementById('mobile-overlay');
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        function handleSignOut() {
+            if (confirm('Sign out of Pathology Core session?')) {
+                showToast('Signed out of session.', 'info');
+            }
+        }
+
+        function refreshDashboard() {
+            const list = SpecimenStore.getAll();
+            
+            // Top Metrics
+            document.getElementById('dash-total').textContent = list.length;
+            const frozenCount = list.filter(i => i.preservation === '-80C Frozen').length;
+            const fixedCount = list.filter(i => i.preservation === 'Fixed').length;
+            document.getElementById('dash-frozen').textContent = frozenCount;
+
+            // Avg Ischemia
+            const itemsWithIsch = list.filter(i => i.coldIschemiaMinutes && i.coldIschemiaMinutes > 0);
+            if (itemsWithIsch.length > 0) {
+                const totalMin = itemsWithIsch.reduce((acc, curr) => acc + curr.coldIschemiaMinutes, 0);
+                const avgMin = Math.round(totalMin / itemsWithIsch.length);
+                document.getElementById('dash-avg-isch').textContent = `${Math.floor(avgMin / 60)}h ${avgMin % 60}m`;
+            } else {
+                document.getElementById('dash-avg-isch').textContent = '2h 15m';
+            }
+
+            const flaggedCount = list.filter(i => i.status === 'Flagged' || (i.coldIschemiaMinutes && i.coldIschemiaMinutes > 240)).length;
+            document.getElementById('dash-flagged').textContent = flaggedCount;
+
+            // Render Recent Feed
+            const feed = document.getElementById('dash-recent-list');
+            feed.innerHTML = list.slice(0, 5).map(item => {
+                const organIcon = getOrganIcon(item.organ);
+                return `
+                    <div onclick="openSpecimenModal('${item.id}')" class="p-sm rounded-lg bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 flex items-center justify-between transition-colors cursor-pointer">
+                        <div class="flex items-center gap-sm">
+                            <span class="material-symbols-outlined text-primary text-[22px]">${organIcon}</span>
+                            <div>
+                                <div class="flex items-center gap-xs">
+                                    <span class="font-mono-data text-sm font-bold text-on-surface">${item.donorId}</span>
+                                    <span class="text-xs text-on-surface-variant">(${item.organ})</span>
+                                </div>
+                                <span class="text-[11px] text-on-surface-variant">${item.location} • ${item.preservation}</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-mono-data text-xs text-primary font-semibold">${item.coldIschemia || 'N/A'}</span>
+                            <div class="text-[10px] text-on-surface-variant">${formatRelativeTime(item.createdAt)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Render Charts
+            renderCharts(list);
+        }
+
+        function renderCharts(list) {
+            const organCounts = {
+                'Lung': 0, 'Heart': 0, 'Liver': 0, 'Kidney': 0, 'Pancreas': 0, 'Spleen': 0, 'Intestines': 0, 'Other': 0
+            };
+            list.forEach(i => {
+                if (organCounts[i.organ] !== undefined) {
+                    organCounts[i.organ]++;
+                } else {
+                    organCounts['Other']++;
+                }
+            });
+
+            // Organ Bar Chart
+            const ctxOrgan = document.getElementById('organChart').getContext('2d');
+            if (organChartInstance) organChartInstance.destroy();
+            organChartInstance = new Chart(ctxOrgan, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(organCounts),
+                    datasets: [{
+                        label: 'Registered Specimens',
+                        data: Object.values(organCounts),
+                        backgroundColor: '#4cd7f6',
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1, color: '#bcc9cd' },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        },
+                        x: {
+                            ticks: { color: '#bcc9cd' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+
+            // Preservation Donut Chart
+            const frozen = list.filter(i => i.preservation === '-80C Frozen').length;
+            const fixed = list.filter(i => i.preservation === 'Fixed').length;
+
+            const ctxPres = document.getElementById('preservationChart').getContext('2d');
+            if (preservationChartInstance) preservationChartInstance.destroy();
+            preservationChartInstance = new Chart(ctxPres, {
+                type: 'doughnut',
+                data: {
+                    labels: ['-80°C Frozen', 'Fixed'],
+                    datasets: [{
+                        data: [frozen || 1, fixed || 1],
+                        backgroundColor: ['#4cd7f6', '#ff7f8b'],
+                        borderColor: '#0b1326',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#bcc9cd', font: { family: 'Inter' } }
+                        }
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshDashboard();
+            window.addEventListener('pathology_store_change', refreshDashboard);
+        });
+    </script>
+</body>
+</html>
