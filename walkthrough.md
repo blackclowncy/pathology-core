@@ -89,6 +89,22 @@
 - **样本详情模态框 (`openSpecimenModal`)**:
   - 展示供体基本信息、病史、灌注状态（NMP/HMP/Structure Image）、冷热缺血耗时与临床备注。
   - 动态调用 JsBarcode 渲染 Code128 条形码。
+  - **【最新增加】编辑入口**：弹窗顶部与底部均提供 **`Edit Record` / `Edit Info`** 按钮，点击直接打开标本编辑表单。
+- **【最新增加】标本全信息编辑控制器 (`openEditSpecimenModal`)**:
+  - 支持对任意已有标本进行全量字段的在线编辑与更新：
+    - **Donor ID** (供体编号)
+    - **Organ Type** (器官类型选择器)
+    - **Position** (若为 Lung 或 Kidney，自动展开 Right / Left / Enbloc 解剖方位选择)
+    - **Preservation** (-80C Frozen / Fixed)
+    - **Storage Location** (冰箱/架位编号)
+    - **Demographics** (Age, Gender, BMI, Cause of Death)
+    - **Timing** (Warm Ischemia & N/A 选项，Clamp Time & Collection Time 纯英文 Flatpickr 日期时间选择器，冷缺血耗时实时自动重算)
+    - **Status (Perfusion / Modality)** (NMP, HMP, Structure Image 多选)
+    - **Histology** (独立勾选框)
+    - **Medical History** (10 项病史复选)
+    - **Manual Remarks** (临床备注多行文本输入)
+    - **Quality Status** (Clear / Pending / Flagged 质控状态)
+  - 提交后自动通过 `SpecimenStore.save()` 持久化至 `localStorage`，触发 `pathology_store_change` 全局事件刷新所有视图，并弹出成功提示。
 - **试管/包埋盒标签打印 (`printSpecimenLabel`)**:
   - 一键调用系统打印机，打印标准规格标签（包含 `PATHOLOGY CORE • TANG LAB`、Donor ID、Organ、Status、Location、条形码等）。
 - **急诊绿色通道模态框 (`openEmergencyLogModal`)**:
@@ -101,14 +117,18 @@
 ---
 
 ### 2.4 样本归档库 [`archive.html`](file:///e:/Project/Web/pathology-core/archive.html)
-- **统计卡片 Banner**:
-  - 汇总总样本数、-80°C 冻存数、固定中样本数、超时预警样本数。
-- **器官快速过滤胶囊 (Filter Pills)**:
-  - All Organs, Kidney, Liver, Lung, Heart, Pancreas, Spleen 一键切换。
-- **全功能数据表格**:
-  - 支持全选 / 单选复选框。
-  - 显示 Donor ID, T-ID, Organ, Status/Modality, Preservation, Location, Cold Ischemia, Demographics, Status, Registered Date。
-  - 行操作快捷按钮：查看详情模态框、打印试管标签、单条删除。
+- **【最新美化】统计卡片 Banner**:
+  - 优化图标尺寸为细腻的 `40px/20px` 临床光效徽章，数值采用 `JetBrains Mono` 大号高亮排版，增加悬停渐变高亮与质感边框。
+- **【最新美化】器官快速过滤胶囊 (Filter Pills)**:
+  - 每个器官标签均嵌入对应解剖图标（`pulmonology`、`nephrology`、`fluid`、`cardiology` 等），增加活动态荧光高亮阴影。
+- **【最新美化】全功能数据表格与编辑操作**:
+  - 表格标题栏增加临床属性图标与大写字母间距。
+  - 器官列升级为带柔和背景色的独立微型图标徽章，副标题展示 Position（如 `Right`、`Left`、`Enbloc`）。
+  - Status/Modality 列采用精细配色标签（NMP 琥珀金、HMP 天空青、Structure Image 靛蓝、Histology 翡翠绿）。
+  - Cold Ischemia 列增加倒计时图标与智能超时红/绿胶囊。
+  - **行操作栏新增「编辑」按钮 (`edit`)**：与「查看详情 (`visibility`)」、「打印标签 (`print`)」、「删除 (`delete`)」并列，带有悬停交互与 Tooltip 提示。
+- **底部数据计数栏 (Table Counter Footer)**:
+  - 实时显示 `Showing X of Y specimens` 动态计数与 Tang Lab 存储库在线指示灯。
 - **批量操作栏**:
   - 选中多条记录时自动呼出批量删除按钮，并支持全库批量导出为 Excel。
 
@@ -171,5 +191,8 @@
 | :--- | :--- | :--- |
 | `af0bd2c` | `feat: complete specimen registration, storage, Excel import/export, and branch pages` | 全部 HTML/JS/README 新建与重构 |
 | `7a0c321` | `Update Lab ID to Tang Lab, update Cold Ischemia filters (<12h, 12-24h, >24h), and add Status checkboxes (NMP, HMP, Structure Image)` | `index.html`, `archive.html`, `dashboard.html`, `analytics.html`, `resources.html`, `settings.html`, `support.html`, `js/storage.js`, `js/common.js` |
+| `478218f` | `Fix viewport cutoff, restore natural scrolling across all pages, and add pb-32` | 7 个页面 HTML 布局调整 |
+| `(Latest)` | `feat: beautify archive page and add comprehensive specimen information editing` | `archive.html`, `js/common.js`, `walkthrough.md` |
 
 全部代码已经通过本地语法校验（`node -c`）并成功推送到远程 GitHub 仓库 `main` 分支。
+

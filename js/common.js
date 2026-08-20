@@ -156,12 +156,17 @@ function openSpecimenModal(specimenId) {
                             <h2 class="font-headline-sm text-headline-sm font-bold text-on-surface">${specimen.donorId}</h2>
                             ${statusBadge}
                         </div>
-                        <span class="font-mono-data text-xs text-on-surface-variant">${specimen.tid || specimen.id} • ${specimen.organ}</span>
+                        <span class="font-mono-data text-xs text-on-surface-variant">${specimen.tid || specimen.id} • ${specimen.organ}${specimen.position ? ' (' + specimen.position + ')' : ''}</span>
                     </div>
                 </div>
-                <button class="text-on-surface-variant hover:text-white p-1 rounded-lg transition-colors" onclick="document.getElementById('specimen-detail-modal').classList.add('hidden')">
-                    <span class="material-symbols-outlined text-[20px]">close</span>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="openEditSpecimenModal('${specimen.id}')" class="px-2.5 py-1 rounded bg-secondary/15 hover:bg-secondary/25 text-secondary border border-secondary/30 text-xs font-semibold flex items-center gap-1 transition-colors">
+                        <span class="material-symbols-outlined text-[16px]">edit</span> Edit Record
+                    </button>
+                    <button class="text-on-surface-variant hover:text-white p-1 rounded-lg transition-colors" onclick="document.getElementById('specimen-detail-modal').classList.add('hidden')">
+                        <span class="material-symbols-outlined text-[20px]">close</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Modal Body -->
@@ -173,6 +178,9 @@ function openSpecimenModal(specimenId) {
                         <svg id="modal-barcode-svg" class="max-w-[200px] h-12"></svg>
                     </div>
                     <div class="flex gap-2">
+                        <button onclick="openEditSpecimenModal('${specimen.id}')" class="px-3 py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant text-xs font-semibold flex items-center gap-1 transition-colors">
+                            <span class="material-symbols-outlined text-[16px]">edit</span> Edit Info
+                        </button>
                         <button onclick="printSpecimenLabel('${specimen.id}')" class="px-3 py-1.5 rounded bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 text-xs font-semibold flex items-center gap-1 transition-colors">
                             <span class="material-symbols-outlined text-[16px]">print</span> Print Tube Label
                         </button>
@@ -239,6 +247,9 @@ function openSpecimenModal(specimenId) {
                     <span class="material-symbols-outlined text-[16px]">delete</span> Delete Record
                 </button>
                 <div class="flex gap-2">
+                    <button onclick="openEditSpecimenModal('${specimen.id}')" class="px-3 py-1.5 rounded bg-primary hover:bg-primary-fixed text-on-primary text-xs font-semibold flex items-center gap-1 transition-colors shadow-sm">
+                        <span class="material-symbols-outlined text-[16px]">edit</span> Edit Specimen
+                    </button>
                     <button onclick="document.getElementById('specimen-detail-modal').classList.add('hidden')" class="px-4 py-1.5 rounded border border-outline-variant text-on-surface-variant hover:text-white text-xs font-semibold">
                         Close
                     </button>
@@ -265,6 +276,359 @@ function openSpecimenModal(specimenId) {
             console.log('Barcode rendering error:', e);
         }
     }
+}
+
+// Specimen Edit Modal
+function openEditSpecimenModal(specimenId) {
+    const specimen = SpecimenStore.getById(specimenId);
+    if (!specimen) return;
+
+    let modal = document.getElementById('specimen-edit-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'specimen-edit-modal';
+        modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden';
+        document.body.appendChild(modal);
+    }
+
+    const organs = ['Lung', 'Heart', 'Liver', 'Kidney', 'Pancreas', 'Spleen', 'Intestines', 'Other'];
+    const organOptionsHtml = organs.map(org => `<option value="${org}" ${specimen.organ === org ? 'selected' : ''}>${org}</option>`).join('');
+
+    const medHistList = ['HTN', 'Diabetes', 'CAD', 'COPD', 'Obesity', 'CKD', 'Liver', 'Tobacco', 'Alcohol', 'Drugs'];
+    const medHistMap = {
+        'HTN': 'Hypertension (HTN)',
+        'Diabetes': 'Diabetes Mellitus',
+        'CAD': 'Coronary Artery Disease',
+        'COPD': 'COPD',
+        'Obesity': 'Clinical Obesity',
+        'CKD': 'Chronic Kidney Disease',
+        'Liver': 'Liver Cirrhosis',
+        'Tobacco': 'Tobacco / Smoking',
+        'Alcohol': 'Alcohol Consumption',
+        'Drugs': 'Drug Abuse'
+    };
+    const medHistHtml = medHistList.map(item => {
+        const checked = (specimen.medicalHistory && specimen.medicalHistory.includes(item)) ? 'checked' : '';
+        return `
+            <label class="flex items-center gap-1.5 cursor-pointer text-xs group">
+                <input type="checkbox" class="checkbox-clinical edit-medhist-cb" value="${item}" ${checked}/>
+                <span class="text-on-surface group-hover:text-primary transition-colors">${medHistMap[item] || item}</span>
+            </label>
+        `;
+    }).join('');
+
+    const statusOptions = ['NMP', 'HMP', 'Structure Image'];
+    const statusOptionsHtml = statusOptions.map(opt => {
+        const checked = (specimen.statusOptions && specimen.statusOptions.includes(opt)) ? 'checked' : '';
+        const desc = opt === 'NMP' ? '(Normothermic)' : (opt === 'HMP' ? '(Hypothermic)' : '(OCT/PAI/Ultrasound)');
+        return `
+            <label class="flex items-center gap-1.5 cursor-pointer text-xs group">
+                <input type="checkbox" class="checkbox-clinical edit-status-opt-cb" value="${opt}" ${checked}/>
+                <span class="text-on-surface font-semibold group-hover:text-primary transition-colors">${opt}</span>
+                <span class="text-[10px] text-on-surface-variant">${desc}</span>
+            </label>
+        `;
+    }).join('');
+
+    const isLungOrKidney = specimen.organ === 'Lung' || specimen.organ === 'Kidney';
+
+    modal.innerHTML = `
+        <div class="glass-panel bg-surface-container-low border border-[#334155] rounded-xl max-w-3xl w-full max-h-[90vh] flex flex-col glow-shadow overflow-hidden">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between p-md border-b border-outline-variant bg-surface-container">
+                <div class="flex items-center gap-sm">
+                    <span class="material-symbols-outlined text-primary text-[24px]">edit_note</span>
+                    <div>
+                        <h2 class="font-headline-sm text-headline-sm font-bold text-on-surface">Edit Specimen Record</h2>
+                        <span class="font-mono-data text-xs text-on-surface-variant">${specimen.donorId} • Tracking ID: ${specimen.tid || specimen.id}</span>
+                    </div>
+                </div>
+                <button class="text-on-surface-variant hover:text-white p-1 rounded-lg transition-colors" onclick="document.getElementById('specimen-edit-modal').classList.add('hidden')">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+            </div>
+
+            <!-- Modal Form Body -->
+            <form id="specimen-edit-form" class="p-lg overflow-y-auto flex flex-col gap-md">
+                <!-- Row 1: Donor ID & Organ & Position -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-md">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-on-surface-variant uppercase font-semibold">Donor ID <span class="text-error">*</span></label>
+                        <input id="edit-donor-id" type="text" required value="${specimen.donorId}" class="input-clinical bg-[#0F172A] text-white w-full rounded-md py-1.5 px-2.5 font-mono-data text-sm uppercase"/>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-on-surface-variant uppercase font-semibold">Organ Type <span class="text-error">*</span></label>
+                        <select id="edit-organ" class="input-clinical bg-[#0F172A] text-white w-full rounded-md py-1.5 px-2.5 text-sm cursor-pointer">
+                            ${organOptionsHtml}
+                        </select>
+                    </div>
+                    <div id="edit-position-group" class="flex flex-col gap-1 ${isLungOrKidney ? '' : 'hidden'}">
+                        <label class="text-xs text-primary uppercase font-semibold">Position (Side / Anatomy)</label>
+                        <select id="edit-position" class="input-clinical bg-[#0F172A] text-white w-full rounded-md py-1.5 px-2.5 text-sm cursor-pointer">
+                            <option value="" ${!specimen.position ? 'selected' : ''}>None / Unspecified</option>
+                            <option value="Right" ${specimen.position === 'Right' ? 'selected' : ''}>Right</option>
+                            <option value="Left" ${specimen.position === 'Left' ? 'selected' : ''}>Left</option>
+                            <option value="Enbloc" ${specimen.position === 'Enbloc' ? 'selected' : ''}>Enbloc</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Row 2: Preservation, Storage Location, Status Flag -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-md">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-on-surface-variant uppercase font-semibold">Preservation</label>
+                        <select id="edit-preservation" class="input-clinical bg-[#0F172A] text-white w-full rounded-md py-1.5 px-2.5 text-sm cursor-pointer">
+                            <option value="-80C Frozen" ${specimen.preservation === '-80C Frozen' ? 'selected' : ''}>-80C Frozen</option>
+                            <option value="Fixed" ${specimen.preservation === 'Fixed' ? 'selected' : ''}>Fixed</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-on-surface-variant uppercase font-semibold">Storage Location</label>
+                        <input id="edit-location" type="text" value="${specimen.location || ''}" placeholder="e.g. S1/R2/B05" class="input-clinical bg-[#0F172A] text-white w-full rounded-md py-1.5 px-2.5 font-mono-data text-sm"/>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-on-surface-variant uppercase font-semibold">Quality Status Flag</label>
+                        <select id="edit-status-flag" class="input-clinical bg-[#0F172A] text-white w-full rounded-md py-1.5 px-2.5 text-sm cursor-pointer">
+                            <option value="Clear" ${specimen.status === 'Clear' ? 'selected' : ''}>Clear (Passed)</option>
+                            <option value="Pending" ${specimen.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                            <option value="Flagged" ${specimen.status === 'Flagged' ? 'selected' : ''}>Flagged</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Row 3: Demographics -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-md bg-surface-container/30 p-sm rounded-lg border border-outline-variant/30">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-on-surface-variant uppercase font-semibold">Age (Yrs)</label>
+                        <input id="edit-age" type="number" min="0" max="120" value="${specimen.age || ''}" class="input-clinical bg-[#0F172A] text-white w-full rounded-md py-1 px-2 text-sm font-mono-data"/>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-on-surface-variant uppercase font-semibold">Gender</label>
+                        <select id="edit-gender" class="input-clinical bg-[#0F172A] text-white w-full rounded-md py-1 px-2 text-sm cursor-pointer">
+                            <option value="" ${!specimen.gender ? 'selected' : ''}>Select</option>
+                            <option value="Male" ${specimen.gender === 'Male' ? 'selected' : ''}>Male</option>
+                            <option value="Female" ${specimen.gender === 'Female' ? 'selected' : ''}>Female</option>
+                            <option value="Other" ${specimen.gender === 'Other' ? 'selected' : ''}>Other</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-on-surface-variant uppercase font-semibold">BMI (kg/m²)</label>
+                        <input id="edit-bmi" type="number" step="0.1" min="10" max="70" value="${specimen.bmi || ''}" class="input-clinical bg-[#0F172A] text-white w-full rounded-md py-1 px-2 text-sm font-mono-data"/>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-on-surface-variant uppercase font-semibold">Reason of Death</label>
+                        <input id="edit-cause-of-death" type="text" value="${specimen.causeOfDeath || ''}" placeholder="Cause..." class="input-clinical bg-[#0F172A] text-white w-full rounded-md py-1 px-2 text-sm"/>
+                    </div>
+                </div>
+
+                <!-- Row 4: Timing & Cold Ischemia -->
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-md bg-surface-container/30 p-sm rounded-lg border border-outline-variant/30">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-on-surface-variant uppercase font-semibold">Warm Isch (Mins)</label>
+                        <div class="flex items-center gap-1.5">
+                            <input id="edit-warm-ischemia" type="number" min="0" value="${specimen.warmIschemia || ''}" ${specimen.warmIschemiaNA ? 'disabled' : ''} class="input-clinical bg-[#0F172A] text-white w-full rounded-md py-1 px-2 text-sm font-mono-data"/>
+                            <label class="flex items-center gap-1 text-[11px] text-on-surface-variant cursor-pointer whitespace-nowrap">
+                                <input id="edit-warm-ischemia-na" type="checkbox" class="checkbox-clinical" ${specimen.warmIschemiaNA ? 'checked' : ''}/>
+                                <span>N/A</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-on-surface-variant uppercase font-semibold">Clamp Time</label>
+                        <input id="edit-clamp-time" type="text" value="${specimen.clampTime || ''}" placeholder="YYYY-MM-DD HH:mm" class="input-clinical bg-[#0F172A] text-white w-full rounded-md py-1 px-2 text-sm font-mono-data cursor-pointer"/>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-on-surface-variant uppercase font-semibold">Collection Time</label>
+                        <input id="edit-collection-time" type="text" value="${specimen.collectionTime || ''}" placeholder="YYYY-MM-DD HH:mm" class="input-clinical bg-[#0F172A] text-white w-full rounded-md py-1 px-2 text-sm font-mono-data cursor-pointer"/>
+                    </div>
+                    <div class="flex flex-col gap-1 justify-center border-l border-outline-variant/30 pl-sm">
+                        <span class="text-[11px] text-on-surface-variant uppercase font-semibold">Cold Ischemia Time</span>
+                        <span id="edit-cold-isch-display" class="font-mono-data text-secondary font-bold text-sm">${specimen.coldIschemia || 'N/A'}</span>
+                    </div>
+                </div>
+
+                <!-- Row 5: Status Options & Histology -->
+                <div class="flex flex-col sm:flex-row gap-md bg-surface-container/30 p-sm rounded-lg border border-outline-variant/30">
+                    <div class="flex-1 flex flex-col gap-1">
+                        <label class="text-xs text-on-surface-variant uppercase font-semibold">Status (Check all that apply)</label>
+                        <div class="flex flex-wrap gap-md mt-1">
+                            ${statusOptionsHtml}
+                        </div>
+                    </div>
+                    <div class="sm:w-[150px] flex flex-col gap-1 sm:border-l sm:border-outline-variant/30 sm:pl-md justify-center">
+                        <label class="text-xs text-on-surface-variant uppercase font-semibold">Histology</label>
+                        <label class="flex items-center gap-2 cursor-pointer mt-1">
+                            <input id="edit-histology" type="checkbox" class="checkbox-clinical" ${specimen.histology ? 'checked' : ''}/>
+                            <span class="text-xs text-on-surface font-semibold">Histology</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Row 6: Medical History -->
+                <div class="flex flex-col gap-1 bg-surface-container/20 p-sm rounded-lg border border-outline-variant/20">
+                    <label class="text-xs text-on-surface-variant uppercase font-semibold">Medical History</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1">
+                        ${medHistHtml}
+                    </div>
+                </div>
+
+                <!-- Row 7: Manual Remarks -->
+                <div class="flex flex-col gap-1 bg-surface-container/20 p-sm rounded-lg border border-outline-variant/20">
+                    <label class="text-xs text-on-surface-variant uppercase font-semibold flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[14px] text-primary">edit_note</span> Manual Remarks
+                    </label>
+                    <textarea id="edit-remarks" rows="3" class="input-clinical bg-[#0F172A] text-white w-full rounded-md p-2 text-xs font-body-md" placeholder="Enter clinical notes...">${specimen.remarks || ''}</textarea>
+                </div>
+            </form>
+
+            <!-- Modal Footer -->
+            <div class="flex justify-between items-center p-md border-t border-outline-variant bg-surface-container">
+                <button type="button" onclick="document.getElementById('specimen-edit-modal').classList.add('hidden')" class="px-4 py-1.5 rounded border border-outline-variant text-on-surface-variant hover:text-white text-xs font-semibold">
+                    Cancel
+                </button>
+                <button type="button" id="btn-save-specimen-edit" class="px-5 py-1.5 rounded bg-primary hover:bg-primary-fixed text-on-primary text-xs font-bold flex items-center gap-1.5 shadow-[0_0_12px_rgba(6,182,212,0.3)] transition-all">
+                    <span class="material-symbols-outlined text-[16px]">save</span> Save Changes
+                </button>
+            </div>
+        </div>
+    `;
+
+    modal.classList.remove('hidden');
+
+    // Attach dynamic listeners
+    const editOrgan = document.getElementById('edit-organ');
+    const editPosGroup = document.getElementById('edit-position-group');
+    editOrgan.addEventListener('change', () => {
+        if (editOrgan.value === 'Lung' || editOrgan.value === 'Kidney') {
+            editPosGroup.classList.remove('hidden');
+        } else {
+            editPosGroup.classList.add('hidden');
+            document.getElementById('edit-position').value = '';
+        }
+    });
+
+    const warmNaCb = document.getElementById('edit-warm-ischemia-na');
+    const warmInput = document.getElementById('edit-warm-ischemia');
+    warmNaCb.addEventListener('change', () => {
+        warmInput.disabled = warmNaCb.checked;
+        if (warmNaCb.checked) warmInput.value = '';
+    });
+
+    // Initialize Flatpickr
+    function recalculateEditColdIsch() {
+        const clampVal = document.getElementById('edit-clamp-time').value.trim();
+        const collectVal = document.getElementById('edit-collection-time').value.trim();
+        const display = document.getElementById('edit-cold-isch-display');
+        if (!clampVal || !collectVal) {
+            display.textContent = 'N/A';
+            return;
+        }
+        const d1 = new Date(clampVal.replace(' ', 'T'));
+        const d2 = new Date(collectVal.replace(' ', 'T'));
+        if (isNaN(d1.getTime()) || isNaN(d2.getTime()) || d2 < d1) {
+            display.textContent = 'Invalid duration';
+            return;
+        }
+        const diffMinutes = Math.floor((d2 - d1) / 60000);
+        const hours = Math.floor(diffMinutes / 60);
+        const mins = diffMinutes % 60;
+        display.textContent = `${hours}h ${mins}min`;
+    }
+
+    if (typeof flatpickr !== 'undefined') {
+        const fpConfig = {
+            enableTime: true,
+            time_24hr: true,
+            dateFormat: "Y-m-d H:i",
+            altInput: false,
+            allowInput: true,
+            disableMobile: true,
+            locale: "default",
+            onChange: function() {
+                recalculateEditColdIsch();
+            }
+        };
+        flatpickr("#edit-clamp-time", fpConfig);
+        flatpickr("#edit-collection-time", fpConfig);
+    }
+
+    document.getElementById('edit-clamp-time').addEventListener('input', recalculateEditColdIsch);
+    document.getElementById('edit-collection-time').addEventListener('input', recalculateEditColdIsch);
+
+    // Save handler
+    document.getElementById('btn-save-specimen-edit').onclick = () => {
+        const donorId = document.getElementById('edit-donor-id').value.trim();
+        if (!donorId) {
+            showToast('Donor ID is required.', 'error');
+            return;
+        }
+
+        const organ = document.getElementById('edit-organ').value;
+        const position = (organ === 'Lung' || organ === 'Kidney') ? document.getElementById('edit-position').value : '';
+        const preservation = document.getElementById('edit-preservation').value;
+        const location = document.getElementById('edit-location').value.trim();
+        const status = document.getElementById('edit-status-flag').value;
+        const age = document.getElementById('edit-age').value ? parseInt(document.getElementById('edit-age').value, 10) : null;
+        const gender = document.getElementById('edit-gender').value;
+        const bmi = document.getElementById('edit-bmi').value ? parseFloat(document.getElementById('edit-bmi').value) : null;
+        const causeOfDeath = document.getElementById('edit-cause-of-death').value.trim();
+
+        const warmIschemiaNA = document.getElementById('edit-warm-ischemia-na').checked;
+        const warmIschemia = (!warmIschemiaNA && document.getElementById('edit-warm-ischemia').value) ? parseInt(document.getElementById('edit-warm-ischemia').value, 10) : null;
+
+        const clampTime = document.getElementById('edit-clamp-time').value.trim();
+        const collectionTime = document.getElementById('edit-collection-time').value.trim();
+
+        let coldIschemia = 'N/A';
+        let coldIschemiaMinutes = 0;
+        if (clampTime && collectionTime) {
+            const d1 = new Date(clampTime.replace(' ', 'T'));
+            const d2 = new Date(collectionTime.replace(' ', 'T'));
+            if (!isNaN(d1.getTime()) && !isNaN(d2.getTime()) && d2 >= d1) {
+                coldIschemiaMinutes = Math.floor((d2 - d1) / 60000);
+                coldIschemia = `${Math.floor(coldIschemiaMinutes / 60)}h ${coldIschemiaMinutes % 60}min`;
+            }
+        }
+
+        const statusOptions = Array.from(document.querySelectorAll('.edit-status-opt-cb:checked')).map(cb => cb.value);
+        const histology = document.getElementById('edit-histology').checked;
+        const medicalHistory = Array.from(document.querySelectorAll('.edit-medhist-cb:checked')).map(cb => cb.value);
+        const remarks = document.getElementById('edit-remarks').value.trim();
+
+        const updatedSpecimen = {
+            ...specimen,
+            donorId,
+            organ,
+            position,
+            preservation,
+            location,
+            status,
+            age,
+            gender,
+            bmi,
+            causeOfDeath,
+            warmIschemia,
+            warmIschemiaNA,
+            clampTime,
+            collectionTime,
+            coldIschemia,
+            coldIschemiaMinutes,
+            statusOptions,
+            histology,
+            medicalHistory,
+            remarks
+        };
+
+        SpecimenStore.save(updatedSpecimen);
+        showToast(`Specimen ${donorId} updated successfully!`, 'success');
+        modal.classList.add('hidden');
+
+        // If detail modal is open, refresh it
+        const detailModal = document.getElementById('specimen-detail-modal');
+        if (detailModal && !detailModal.classList.contains('hidden')) {
+            openSpecimenModal(specimen.id);
+        }
+    };
 }
 
 // Print Specimen Label Helper
