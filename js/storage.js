@@ -178,13 +178,72 @@ const DEFAULT_HISTORY = [
 
 // Data Store Object
 const SpecimenStore = {
-    // Initializer
+    // Initializer with backward-compatibility data migration
     init() {
-        if (!localStorage.getItem(STORAGE_KEYS.SPECIMENS)) {
-            localStorage.setItem(STORAGE_KEYS.SPECIMENS, JSON.stringify(DEFAULT_SPECIMENS));
+        const legacyKeys = [
+            'pathology_core_specimens',
+            'pathology_specimens',
+            'specimens',
+            'pathology_core_samples',
+            'pathology_specimens_v1',
+            'pathology_core_specimens_v1'
+        ];
+
+        let currentList = [];
+        const rawCurrent = localStorage.getItem(STORAGE_KEYS.SPECIMENS);
+        if (rawCurrent) {
+            try {
+                currentList = JSON.parse(rawCurrent);
+                if (!Array.isArray(currentList)) currentList = [];
+            } catch (e) {
+                currentList = [];
+            }
         }
+
+        // Migrate and merge any records from legacy keys
+        let hasMergedLegacy = false;
+        const currentIds = new Set(currentList.map(s => s.id || s.donorId || s.tid));
+
+        for (const oldKey of legacyKeys) {
+            const rawOld = localStorage.getItem(oldKey);
+            if (rawOld) {
+                try {
+                    const oldList = JSON.parse(rawOld);
+                    if (Array.isArray(oldList)) {
+                        for (const oldItem of oldList) {
+                            const uniqueKey = oldItem.id || oldItem.donorId || oldItem.tid;
+                            if (uniqueKey && !currentIds.has(uniqueKey)) {
+                                currentList.unshift(oldItem);
+                                currentIds.add(uniqueKey);
+                                hasMergedLegacy = true;
+                            }
+                        }
+                    }
+                } catch (e) {}
+            }
+        }
+
+        if (currentList.length === 0) {
+            currentList = DEFAULT_SPECIMENS;
+            localStorage.setItem(STORAGE_KEYS.SPECIMENS, JSON.stringify(currentList));
+        } else if (hasMergedLegacy || !rawCurrent) {
+            localStorage.setItem(STORAGE_KEYS.SPECIMENS, JSON.stringify(currentList));
+        }
+
+        // Settings init & migration
         if (!localStorage.getItem(STORAGE_KEYS.SETTINGS)) {
-            localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
+            const oldSettings = localStorage.getItem('pathology_core_settings') || localStorage.getItem('pathology_settings');
+            if (oldSettings) {
+                try {
+                    const s = JSON.parse(oldSettings);
+                    s.labId = 'Tang Lab';
+                    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(s));
+                } catch (e) {
+                    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
+                }
+            } else {
+                localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
+            }
         } else {
             // Ensure Lab ID is updated to Tang Lab
             try {
@@ -195,11 +254,22 @@ const SpecimenStore = {
                 }
             } catch (e) {}
         }
+
         if (!localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS)) {
-            localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(DEFAULT_NOTIFICATIONS));
+            const oldNotifs = localStorage.getItem('pathology_core_notifications');
+            if (oldNotifs) {
+                localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, oldNotifs);
+            } else {
+                localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(DEFAULT_NOTIFICATIONS));
+            }
         }
         if (!localStorage.getItem(STORAGE_KEYS.HISTORY)) {
-            localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(DEFAULT_HISTORY));
+            const oldHist = localStorage.getItem('pathology_core_history');
+            if (oldHist) {
+                localStorage.setItem(STORAGE_KEYS.HISTORY, oldHist);
+            } else {
+                localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(DEFAULT_HISTORY));
+            }
         }
     },
 
