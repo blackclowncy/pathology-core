@@ -242,7 +242,7 @@
         }
     </style>
 </head>
-<body class="bg-background text-on-surface font-body-md text-body-md overflow-hidden selection:bg-primary-container selection:text-on-primary-container h-screen flex">
+<body class="bg-background text-on-surface font-body-md text-body-md selection:bg-primary-container selection:text-on-primary-container min-h-screen flex">
 
     <!-- Mobile Drawer Overlay -->
     <div id="mobile-overlay" class="fixed inset-0 bg-black/60 z-30 hidden md:hidden" onclick="toggleMobileNav()"></div>
@@ -311,7 +311,7 @@
     </nav>
 
     <!-- Main Content Wrapper -->
-    <div class="flex-1 md:ml-[240px] flex flex-col h-full bg-surface-container-lowest overflow-hidden">
+    <div class="flex-1 md:ml-[240px] flex flex-col min-h-screen bg-surface-container-lowest">
         
         <!-- TopAppBar -->
         <header class="bg-surface-container dark:bg-surface-container text-primary dark:text-primary font-label-md text-label-md sticky top-0 z-30 h-auto py-sm px-lg flex flex-col gap-sm justify-center border-b border-outline-variant dark:border-outline-variant">
@@ -426,7 +426,7 @@
         </header>
 
         <!-- Main Canvas -->
-        <main class="flex-1 min-h-0 overflow-y-auto p-lg lg:p-xl custom-scrollbar flex flex-col xl:flex-row gap-lg xl:gap-xl pb-24">
+        <main class="flex-1 p-lg lg:p-xl flex flex-col xl:flex-row gap-lg xl:gap-xl pb-32">
             
             <!-- Left Column: Registration Form (Bento Grid Style) -->
             <div class="flex-1 flex flex-col gap-lg max-w-[1200px]">
