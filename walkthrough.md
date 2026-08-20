@@ -121,12 +121,11 @@
   - 优化图标尺寸为细腻的 `40px/20px` 临床光效徽章，数值采用 `JetBrains Mono` 大号高亮排版，增加悬停渐变高亮与质感边框。
 - **【最新美化】器官快速过滤胶囊 (Filter Pills)**:
   - 每个器官标签均嵌入对应解剖图标（`pulmonology`、`nephrology`、`fluid`、`cardiology` 等），增加活动态荧光高亮阴影。
-- **【最新美化】全功能数据表格与编辑操作**:
-  - 表格标题栏增加临床属性图标与大写字母间距。
-  - 器官列升级为带柔和背景色的独立微型图标徽章，副标题展示 Position（如 `Right`、`Left`、`Enbloc`）。
-  - Status/Modality 列采用精细配色标签（NMP 琥珀金、HMP 天空青、Structure Image 靛蓝、Histology 翡翠绿）。
-  - Cold Ischemia 列增加倒计时图标与智能超时红/绿胶囊。
-  - **行操作栏新增「编辑」按钮 (`edit`)**：与「查看详情 (`visibility`)」、「打印标签 (`print`)」、「删除 (`delete`)」并列，带有悬停交互与 Tooltip 提示。
+- **【最新优化】清爽表格排版与字段精简 (Decluttered Layout)**:
+  - **去除冗余字段**：删除了表格中的 `T-ID` 副标题显示（仅保留加粗高亮的 `Donor ID`），并移除了冗余的 `Quality` 列，大幅减轻视觉负担。
+  - **新增 Clamp Time 阻断时间显示**：在右侧 `Registered` 登记时间列中，增加清晰醒目的 **`Clamp Time`**（如 `2026-08-20 12:30`，附带计时器图标），方便病理学者一眼查看关键时间节点与入库时间对比。
+  - **优化表格间距与呼吸感**：单元格内边距由紧凑的 `p-sm` 增加至舒适宽敞的 `py-3 px-4`，彻底消除文字拥挤感。
+  - **行操作栏编辑入口 (`edit`)**：与「查看详情 (`visibility`)」、「打印标签 (`print`)」、「删除 (`delete`)」并列，带有悬停交互与 Tooltip 提示。
 - **底部数据计数栏 (Table Counter Footer)**:
   - 实时显示 `Showing X of Y specimens` 动态计数与 Tang Lab 存储库在线指示灯。
 - **批量操作栏**:
