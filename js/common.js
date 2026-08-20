@@ -904,6 +904,11 @@ const APPS_SCRIPT_CODE_TEMPLATE = `/**
  * Deploy as: Web app (Execute as: Me, Access: Anyone)
  */
 
+function initialSetupAuth() {
+  var folder = getOrCreateFolder('Tang_Lab_Pathology_Backups');
+  Logger.log('Google Drive permission authorized successfully! Target folder: ' + folder.getName());
+}
+
 function doGet(e) {
   return HtmlService.createHtmlOutput('<h2>Tang Lab Pathology Core Backup Service is Active</h2>');
 }

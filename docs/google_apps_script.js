@@ -18,6 +18,15 @@
  * =========================================================================
  */
 
+/**
+ * First-time Setup:
+ * Select "initialSetupAuth" from the function dropdown above and click "Run ▶" to grant Google Drive permission.
+ */
+function initialSetupAuth() {
+  var folder = getOrCreateFolder('Tang_Lab_Pathology_Backups');
+  Logger.log('Google Drive permission authorized successfully! Target folder: ' + folder.getName());
+}
+
 function doGet(e) {
   return HtmlService.createHtmlOutput(
     '<div style="font-family:sans-serif;padding:24px;background:#0b1326;color:#dae2fd;border-radius:12px;max-width:600px;margin:40px auto;border:1px solid #334155;">' +
