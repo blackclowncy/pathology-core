@@ -5,13 +5,13 @@
  */
 
 const STORAGE_KEYS = {
-    SPECIMENS: 'pathology_core_specimens_v1',
-    SETTINGS: 'pathology_core_settings_v1',
-    HISTORY: 'pathology_core_history_v1',
-    NOTIFICATIONS: 'pathology_core_notifications_v1'
+    SPECIMENS: 'pathology_core_specimens_v2',
+    SETTINGS: 'pathology_core_settings_v2',
+    HISTORY: 'pathology_core_history_v2',
+    NOTIFICATIONS: 'pathology_core_notifications_v2'
 };
 
-// Default seed specimens (including those from the original template)
+// Default seed specimens with updated Lab and Status options (NMP, HMP, Structure Image)
 const DEFAULT_SPECIMENS = [
     {
         id: 'SPEC-1724001',
@@ -31,6 +31,7 @@ const DEFAULT_SPECIMENS = [
         coldIschemia: '2h 2min',
         coldIschemiaMinutes: 122,
         medicalHistory: ['HTN', 'Tobacco'],
+        statusOptions: ['NMP', 'Structure Image'],
         remarks: 'Left lower lobe wedge biopsy, tissue architecture intact, clear margins.',
         status: 'Clear',
         createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
@@ -53,6 +54,7 @@ const DEFAULT_SPECIMENS = [
         coldIschemia: '2h 15min',
         coldIschemiaMinutes: 135,
         medicalHistory: ['Diabetes', 'CAD', 'Obesity'],
+        statusOptions: ['HMP'],
         remarks: 'Segment IV core sample for trichrome & PAS staining, steatosis evaluation.',
         status: 'Pending',
         createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
@@ -75,6 +77,7 @@ const DEFAULT_SPECIMENS = [
         coldIschemia: '2h 30min',
         coldIschemiaMinutes: 150,
         medicalHistory: ['HTN'],
+        statusOptions: ['NMP', 'Structure Image'],
         remarks: 'Cortico-medullary junction section preserved for glomerulosclerosis & IFTA mapping.',
         status: 'Clear',
         createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString()
@@ -97,6 +100,7 @@ const DEFAULT_SPECIMENS = [
         coldIschemia: '2h 20min',
         coldIschemiaMinutes: 140,
         medicalHistory: ['Tobacco', 'Alcohol'],
+        statusOptions: ['HMP', 'Structure Image'],
         remarks: 'Left ventricular apex biopsy, rapid freezing protocol applied.',
         status: 'Clear',
         createdAt: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString()
@@ -119,6 +123,7 @@ const DEFAULT_SPECIMENS = [
         coldIschemia: '4h 30min',
         coldIschemiaMinutes: 270,
         medicalHistory: ['Diabetes', 'Obesity', 'HTN'],
+        statusOptions: ['NMP'],
         remarks: 'Tail of pancreas specimen; prolonged cold ischemia flagged for islet assessment.',
         status: 'Flagged',
         createdAt: new Date(Date.now() - 32 * 60 * 60 * 1000).toISOString()
@@ -126,29 +131,29 @@ const DEFAULT_SPECIMENS = [
 ];
 
 const DEFAULT_SETTINGS = {
-    labId: '772-B',
+    labId: 'Tang Lab',
     institution: 'Pathology & Organ Viability Core',
-    leadPathologist: 'Dr. Yan Cui, MD/PhD',
+    leadPathologist: 'Dr. Qinggong Tang / Dr. Yan Cui',
     defaultPreservation: '-80C Frozen',
     defaultStorageSector: 'S1',
     autoGenerateTID: true,
-    ischemiaAlertThresholdHours: 4,
+    ischemiaAlertThresholdHours: 24,
     theme: 'dark'
 };
 
 const DEFAULT_NOTIFICATIONS = [
     {
         id: 'notif-1',
-        title: 'Prolonged Ischemia Alert',
-        message: 'Specimen D-8828-PA exceeded 4h cold ischemia time (4h 30m).',
-        type: 'warning',
-        time: 'Yesterday',
+        title: 'Specimen Registry Active',
+        message: 'Tang Lab specimen database loaded successfully.',
+        type: 'info',
+        time: 'Today',
         unread: true
     },
     {
         id: 'notif-2',
         title: 'Specimen Batch Registered',
-        message: 'Successfully archived 3 new specimens from Transplant Suite 2.',
+        message: 'Successfully archived new specimens from Organ Assessment Platform.',
         type: 'info',
         time: 'Today',
         unread: false
@@ -156,9 +161,9 @@ const DEFAULT_NOTIFICATIONS = [
 ];
 
 const DEFAULT_HISTORY = [
-    { action: 'Registered', target: 'D-8832-LN', user: 'Pathologist', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
-    { action: 'Registered', target: 'D-8831-LV', user: 'Pathologist', timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString() },
-    { action: 'Registered', target: 'D-8830-KD', user: 'Pathologist', timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString() }
+    { action: 'Registered', target: 'D-8832-LN', user: 'Tang Lab', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
+    { action: 'Registered', target: 'D-8831-LV', user: 'Tang Lab', timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString() },
+    { action: 'Registered', target: 'D-8830-KD', user: 'Tang Lab', timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString() }
 ];
 
 // Data Store Object
@@ -170,6 +175,15 @@ const SpecimenStore = {
         }
         if (!localStorage.getItem(STORAGE_KEYS.SETTINGS)) {
             localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
+        } else {
+            // Ensure Lab ID is updated to Tang Lab
+            try {
+                const s = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS));
+                if (s.labId === '772-B') {
+                    s.labId = 'Tang Lab';
+                    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(s));
+                }
+            } catch (e) {}
         }
         if (!localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS)) {
             localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(DEFAULT_NOTIFICATIONS));
@@ -208,9 +222,12 @@ const SpecimenStore = {
         if (!specimen.createdAt) {
             specimen.createdAt = now.toISOString();
         }
+        if (!specimen.statusOptions) {
+            specimen.statusOptions = [];
+        }
         if (!specimen.status) {
-            // Auto determine status based on cold ischemia
-            if (specimen.coldIschemiaMinutes && specimen.coldIschemiaMinutes > 240) {
+            // Auto determine status based on cold ischemia (>24h flagged)
+            if (specimen.coldIschemiaMinutes && specimen.coldIschemiaMinutes > 1440) {
                 specimen.status = 'Flagged';
             } else if (specimen.preservation === 'Fixed' && specimen.location === 'Processing') {
                 specimen.status = 'Pending';
@@ -226,7 +243,7 @@ const SpecimenStore = {
         } else {
             list.unshift(specimen);
             this.addHistory('Registered', specimen.donorId);
-            this.addNotification('New Specimen Registered', `Specimen ${specimen.donorId} (${specimen.organ}) has been logged.`, 'success');
+            this.addNotification('New Specimen Registered', `Specimen ${specimen.donorId} (${specimen.organ}) has been logged in Tang Lab.`, 'success');
         }
 
         localStorage.setItem(STORAGE_KEYS.SPECIMENS, JSON.stringify(list));
@@ -288,6 +305,7 @@ const SpecimenStore = {
                     (item.preservation && item.preservation.toLowerCase().includes(q)) ||
                     (item.causeOfDeath && item.causeOfDeath.toLowerCase().includes(q)) ||
                     (item.remarks && item.remarks.toLowerCase().includes(q)) ||
+                    (item.statusOptions && item.statusOptions.some(s => s.toLowerCase().includes(q))) ||
                     (item.medicalHistory && item.medicalHistory.some(m => m.toLowerCase().includes(q)))
                 );
             });
@@ -333,14 +351,19 @@ const SpecimenStore = {
             list = list.filter(item => item.medicalHistory && item.medicalHistory.includes(criteria.diagnosis));
         }
 
+        // Updated Cold Ischemia Time criteria: <12h, 12-24h, >24h
         if (criteria.coldIschemia && criteria.coldIschemia !== '') {
-            if (criteria.coldIschemia === '<2h') {
-                list = list.filter(item => item.coldIschemiaMinutes && item.coldIschemiaMinutes < 120);
-            } else if (criteria.coldIschemia === '2-4h') {
-                list = list.filter(item => item.coldIschemiaMinutes && item.coldIschemiaMinutes >= 120 && item.coldIschemiaMinutes <= 240);
-            } else if (criteria.coldIschemia === '>4h') {
-                list = list.filter(item => item.coldIschemiaMinutes && item.coldIschemiaMinutes > 240);
+            if (criteria.coldIschemia === '<12h' || criteria.coldIschemia === '<2h') {
+                list = list.filter(item => item.coldIschemiaMinutes !== undefined && item.coldIschemiaMinutes < 720);
+            } else if (criteria.coldIschemia === '12-24h' || criteria.coldIschemia === '2-4h') {
+                list = list.filter(item => item.coldIschemiaMinutes !== undefined && item.coldIschemiaMinutes >= 720 && item.coldIschemiaMinutes <= 1440);
+            } else if (criteria.coldIschemia === '>24h' || criteria.coldIschemia === '>4h') {
+                list = list.filter(item => item.coldIschemiaMinutes !== undefined && item.coldIschemiaMinutes > 1440);
             }
+        }
+
+        if (criteria.statusOption && criteria.statusOption !== '') {
+            list = list.filter(item => item.statusOptions && item.statusOptions.includes(criteria.statusOption));
         }
 
         if (criteria.preservation && criteria.preservation !== '') {
@@ -355,7 +378,7 @@ const SpecimenStore = {
     },
 
     // Export specimens to Excel / CSV
-    exportToExcel(specimens = null, filename = 'Pathology_Core_Specimens.xlsx') {
+    exportToExcel(specimens = null, filename = 'Tang_Lab_Specimens.xlsx') {
         const data = specimens || this.getAll();
         const exportData = data.map(item => ({
             'Tracking ID': item.tid || item.id,
@@ -363,6 +386,7 @@ const SpecimenStore = {
             'Organ Type': item.organ,
             'Preservation Method': item.preservation,
             'Storage Location': item.location,
+            'Status / Modality': (item.statusOptions || []).join('; '),
             'Age': item.age || '',
             'Gender': item.gender || '',
             'BMI (kg/m²)': item.bmi || '',
@@ -386,14 +410,13 @@ const SpecimenStore = {
             this.addHistory('Exported', `${data.length} records to Excel`);
             return true;
         } else {
-            // Fallback to CSV
             this.exportToCSV(exportData, filename.replace('.xlsx', '.csv'));
             return true;
         }
     },
 
     // CSV Fallback export
-    exportToCSV(data, filename = 'Pathology_Core_Specimens.csv') {
+    exportToCSV(data, filename = 'Tang_Lab_Specimens.csv') {
         if (!data || !data.length) return;
         const headers = Object.keys(data[0]);
         const csvRows = [headers.join(',')];
@@ -460,6 +483,10 @@ const SpecimenStore = {
                         const collectionTime = row['Collection Time'] || row['collectionTime'] || '';
                         const coldIschemia = row['Cold Ischemia Duration'] || row['coldIschemia'] || '';
                         const coldIschemiaMinutes = parseInt(row['Cold Ischemia (mins)'] || row['coldIschemiaMinutes'], 10) || 0;
+                        
+                        const statusOptRaw = row['Status / Modality'] || row['statusOptions'] || '';
+                        const statusOptions = Array.isArray(statusOptRaw) ? statusOptRaw : (typeof statusOptRaw === 'string' ? statusOptRaw.split(/[;,]/).map(s => s.trim()).filter(Boolean) : []);
+
                         const medHistRaw = row['Medical History'] || row['medicalHistory'] || '';
                         const medicalHistory = Array.isArray(medHistRaw) ? medHistRaw : (typeof medHistRaw === 'string' ? medHistRaw.split(/[;,]/).map(s => s.trim()).filter(Boolean) : []);
                         const remarks = row['Clinical Remarks'] || row['remarks'] || '';
@@ -482,6 +509,7 @@ const SpecimenStore = {
                             collectionTime,
                             coldIschemia,
                             coldIschemiaMinutes,
+                            statusOptions,
                             medicalHistory,
                             remarks,
                             status,
@@ -508,7 +536,6 @@ const SpecimenStore = {
 
         for (const item of importedList) {
             if (item.donorId && donorIdMap.has(item.donorId)) {
-                // Update existing
                 const index = current.findIndex(c => c.donorId === item.donorId);
                 current[index] = { ...current[index], ...item };
             } else {
@@ -518,7 +545,7 @@ const SpecimenStore = {
 
         localStorage.setItem(STORAGE_KEYS.SPECIMENS, JSON.stringify(current));
         this.addHistory('Imported', `${importedList.length} records`);
-        this.addNotification('Batch Import Successful', `Imported ${importedList.length} specimen records.`, 'info');
+        this.addNotification('Batch Import Successful', `Imported ${importedList.length} specimen records into Tang Lab.`, 'info');
         this.dispatchChangeEvent();
     },
 
@@ -548,7 +575,7 @@ const SpecimenStore = {
         }
     },
 
-    addHistory(action, target, user = 'Current User') {
+    addHistory(action, target, user = 'Tang Lab') {
         const history = this.getHistory();
         history.unshift({
             action,
@@ -609,7 +636,7 @@ const SpecimenStore = {
 
     exportBackupJSON() {
         const backup = {
-            version: '1.0',
+            version: '2.0',
             exportedAt: new Date().toISOString(),
             specimens: this.getAll(),
             settings: this.getSettings(),
@@ -618,7 +645,7 @@ const SpecimenStore = {
         const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `Pathology_Core_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+        link.download = `Tang_Lab_Pathology_Backup_${new Date().toISOString().slice(0, 10)}.json`;
         link.click();
     },
 

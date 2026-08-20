@@ -80,13 +80,11 @@ function showToast(message, type = 'success', duration = 3500) {
 
     container.appendChild(toast);
 
-    // Trigger enter animation
     setTimeout(() => {
         toast.classList.remove('translate-y-4', 'opacity-0');
         toast.classList.add('translate-y-0', 'opacity-100');
     }, 10);
 
-    // Auto dismiss
     setTimeout(() => {
         toast.classList.add('opacity-0', 'translate-x-4');
         setTimeout(() => toast.remove(), 300);
@@ -113,6 +111,10 @@ function openSpecimenModal(specimenId) {
     const medHist = (specimen.medicalHistory && specimen.medicalHistory.length)
         ? specimen.medicalHistory.map(m => `<span class="bg-surface-container-high px-2 py-0.5 rounded text-xs text-primary border border-outline-variant">${m}</span>`).join(' ')
         : '<span class="text-on-surface-variant text-xs">None documented</span>';
+
+    const statusOptionsBadges = (specimen.statusOptions && specimen.statusOptions.length)
+        ? specimen.statusOptions.map(opt => `<span class="bg-secondary/15 text-secondary border border-secondary/30 px-2 py-0.5 rounded text-xs font-semibold">${opt}</span>`).join(' ')
+        : '<span class="text-on-surface-variant text-xs">None selected</span>';
 
     const statusBadge = specimen.status === 'Clear'
         ? '<span class="bg-secondary/10 text-secondary text-xs uppercase font-bold px-2 py-0.5 rounded border border-secondary/20 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Clear</span>'
@@ -182,6 +184,14 @@ function openSpecimenModal(specimenId) {
                     </div>
                 </div>
 
+                <!-- Perfusion / Modality Status Options -->
+                <div class="flex flex-col gap-1.5 p-sm rounded bg-surface-container/30 border border-outline-variant/20">
+                    <span class="text-xs text-on-surface-variant uppercase font-semibold">Status / Perfusion & Modality</span>
+                    <div class="flex flex-wrap gap-1.5 mt-1">
+                        ${statusOptionsBadges}
+                    </div>
+                </div>
+
                 <!-- Medical History -->
                 <div class="flex flex-col gap-1.5 p-sm rounded bg-surface-container/30 border border-outline-variant/20">
                     <span class="text-xs text-on-surface-variant uppercase font-semibold">Documented Medical History</span>
@@ -213,7 +223,6 @@ function openSpecimenModal(specimenId) {
 
     modal.classList.remove('hidden');
 
-    // Generate Barcode if JsBarcode is loaded
     if (typeof JsBarcode !== 'undefined') {
         try {
             JsBarcode('#modal-barcode-svg', specimen.donorId, {
@@ -237,7 +246,10 @@ function printSpecimenLabel(specimenId) {
     const specimen = SpecimenStore.getById(specimenId);
     if (!specimen) return;
 
-    const printWin = window.open('', '_blank', 'width=500,height=400');
+    const settings = SpecimenStore.getSettings();
+    const statusText = (specimen.statusOptions && specimen.statusOptions.length) ? specimen.statusOptions.join(', ') : 'N/A';
+
+    const printWin = window.open('', '_blank', 'width=500,height=420');
     printWin.document.write(`
         <!DOCTYPE html>
         <html>
@@ -245,17 +257,18 @@ function printSpecimenLabel(specimenId) {
             <title>Specimen Label - ${specimen.donorId}</title>
             <style>
                 body { font-family: monospace; padding: 15px; margin: 0; color: #000; }
-                .label-box { border: 2px solid #000; padding: 10px; width: 320px; border-radius: 6px; }
-                .title { font-size: 14px; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 6px; }
+                .label-box { border: 2px solid #000; padding: 10px; width: 330px; border-radius: 6px; }
+                .title { font-size: 13px; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 6px; letter-spacing: 0.5px; }
                 .row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px; }
                 .barcode { text-align: center; margin-top: 8px; font-size: 16px; font-weight: bold; letter-spacing: 2px; }
             </style>
         </head>
         <body onload="window.print(); window.close();">
             <div class="label-box">
-                <div class="title">PATHOLOGY CORE • LAB 772-B</div>
+                <div class="title">PATHOLOGY CORE • ${settings.labId || 'TANG LAB'}</div>
                 <div class="row"><strong>DONOR ID:</strong> <span>${specimen.donorId}</span></div>
                 <div class="row"><strong>ORGAN:</strong> <span>${specimen.organ}</span></div>
+                <div class="row"><strong>STATUS:</strong> <span>${statusText}</span></div>
                 <div class="row"><strong>TYPE:</strong> <span>${specimen.preservation}</span></div>
                 <div class="row"><strong>LOCATION:</strong> <span>${specimen.location}</span></div>
                 <div class="row"><strong>COLD ISCH:</strong> <span>${specimen.coldIschemia || 'N/A'}</span></div>
@@ -476,13 +489,14 @@ function openEmergencyLogModal() {
             collectionTime,
             coldIschemia,
             coldIschemiaMinutes,
+            statusOptions: ['NMP'],
             remarks: `[EMERGENCY LOG] ${remarks}`,
             status: 'Pending',
             createdAt: new Date().toISOString()
         };
 
         SpecimenStore.save(newSpecimen);
-        showToast(`Emergency Specimen ${donorId} registered!`, 'warning');
+        showToast(`Emergency Specimen ${donorId} registered in Tang Lab!`, 'warning');
         modal.classList.add('hidden');
     };
 }
@@ -512,13 +526,13 @@ function openProfileModal() {
                     <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRN3y3HLc7R3kvx0_TjauE59FPhgewDG2LcjqwC2WlGUH_TmrieMeYy4GcNXMvRKubMPtFFFWbuHPKIdeI7V_SqSyZ2ElEEY7V1IK5ebfdDWjLfWRFo2Fxm_GoMQ5wrR0VUYsMG-rHNMAxB6UeBBOs8feKc8v87_JkuBa3twVYFRyYxBkgG7YfBW5qwrDJ25Y2NM1Ti8sVUHi8kn2QdrqU_RGe3KB1511_p7NZ5YjaMJcpxiZIpTX5QKSAdQ92ij0Cxg6F2ciqasY" class="w-full h-full object-cover">
                 </div>
                 <div>
-                    <h3 class="font-bold text-on-surface text-base">${settings.leadPathologist || 'Dr. Yan Cui'}</h3>
-                    <span class="text-xs text-primary font-mono-data">${settings.institution || 'Pathology Core'}</span>
+                    <h3 class="font-bold text-on-surface text-base">${settings.leadPathologist || 'Dr. Qinggong Tang / Dr. Yan Cui'}</h3>
+                    <span class="text-xs text-primary font-mono-data">${settings.institution || 'Pathology & Organ Viability Core'}</span>
                 </div>
                 <div class="w-full bg-surface-container p-sm rounded-lg border border-outline-variant/30 text-xs flex flex-col gap-1 text-left">
-                    <div class="flex justify-between"><span class="text-on-surface-variant">Lab Station:</span> <span class="font-mono-data text-primary">Lab ID: ${settings.labId}</span></div>
-                    <div class="flex justify-between"><span class="text-on-surface-variant">Role:</span> <span class="text-on-surface">Chief Pathologist</span></div>
-                    <div class="flex justify-between"><span class="text-on-surface-variant">System Version:</span> <span class="font-mono-data text-on-surface">v2.4.0 Live</span></div>
+                    <div class="flex justify-between"><span class="text-on-surface-variant">Lab Station:</span> <span class="font-mono-data text-primary">Lab ID: ${settings.labId || 'Tang Lab'}</span></div>
+                    <div class="flex justify-between"><span class="text-on-surface-variant">Role:</span> <span class="text-on-surface">Principal Investigator / Pathologist</span></div>
+                    <div class="flex justify-between"><span class="text-on-surface-variant">System Version:</span> <span class="font-mono-data text-on-surface">v2.5.0 Live</span></div>
                 </div>
             </div>
             <div class="flex justify-end">
@@ -534,7 +548,6 @@ function openProfileModal() {
 
 // Global UI Initialization
 document.addEventListener('DOMContentLoaded', () => {
-    // Bind Top Bar Search Bar
     const searchInputs = document.querySelectorAll('header input[type="text"]');
     searchInputs.forEach(input => {
         input.addEventListener('keydown', (e) => {
@@ -548,9 +561,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Bind Notification & History Buttons
-    const notifButtons = document.querySelectorAll('header button:has(span:contains("notifications")), header button .material-symbols-outlined:contains("notifications")');
-    // Using simple query for icons
     document.querySelectorAll('header button').forEach(btn => {
         const text = btn.innerText || '';
         if (text.includes('notifications')) {
@@ -562,13 +572,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Bind Profile Avatar
     const profileAvatars = document.querySelectorAll('header .w-8.h-8.rounded-full');
     profileAvatars.forEach(av => {
         av.addEventListener('click', openProfileModal);
     });
 
-    // Close popups on outer click
     document.addEventListener('click', (e) => {
         const notifPopup = document.getElementById('notifications-dropdown');
         const histPopup = document.getElementById('history-dropdown');

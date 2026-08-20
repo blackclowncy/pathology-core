@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Pathology Core - Specimen Archive</title>
+    <title>Pathology Core - Specimen Archive (Tang Lab)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -77,17 +77,6 @@
                         "xl": "0.5rem",
                         "full": "0.75rem"
                     },
-                    "spacing": {
-                        "xl": "32px",
-                        "sm": "12px",
-                        "lg": "24px",
-                        "xs": "4px",
-                        "margin-mobile": "16px",
-                        "gutter": "20px",
-                        "base": "8px",
-                        "margin-desktop": "40px",
-                        "md": "16px"
-                    },
                     "fontFamily": {
                         "mono-data": ["JetBrains Mono", "monospace"],
                         "headline-sm": ["Inter", "sans-serif"],
@@ -96,17 +85,8 @@
                         "headline-md": ["Inter", "sans-serif"],
                         "body-md": ["Inter", "sans-serif"],
                         "display-lg": ["Inter", "sans-serif"]
-                    },
-                    "fontSize": {
-                        "mono-data": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
-                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
-                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
-                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
-                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
-                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
-                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
                     }
-                },
+                }
             }
         }
     </script>
@@ -178,7 +158,7 @@
             </div>
             <div class="flex items-center gap-xs text-on-surface-variant font-label-md text-label-md">
                 <span class="w-2 h-2 rounded-full bg-secondary"></span>
-                <span id="nav-lab-id">Lab ID: 772-B</span>
+                <span id="nav-lab-id">Lab ID: Tang Lab</span>
             </div>
         </div>
         
@@ -189,13 +169,13 @@
         
         <ul class="flex flex-col gap-xs flex-1">
             <li>
-                <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors" href="dashboard.html">
+                <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors" href="dashboard.html">
                     <span class="material-symbols-outlined">dashboard</span>
                     Dashboard
                 </a>
             </li>
             <li>
-                <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors" href="index.html">
+                <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors" href="index.html">
                     <span class="material-symbols-outlined">biotech</span>
                     Register
                 </a>
@@ -207,7 +187,7 @@
                 </a>
             </li>
             <li>
-                <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors" href="settings.html">
+                <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors" href="settings.html">
                     <span class="material-symbols-outlined">settings</span>
                     Settings
                 </a>
@@ -217,13 +197,13 @@
         <div class="mt-auto pt-lg border-t border-outline-variant/50">
             <ul class="flex flex-col gap-xs">
                 <li>
-                    <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors text-sm" href="support.html">
+                    <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors text-sm" href="support.html">
                         <span class="material-symbols-outlined text-[18px]">help_outline</span>
                         Support
                     </a>
                 </li>
                 <li>
-                    <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors text-sm cursor-pointer" onclick="handleSignOut()">
+                    <a class="flex items-center gap-md py-sm px-md rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors text-sm cursor-pointer" onclick="handleSignOut()">
                         <span class="material-symbols-outlined text-[18px]">logout</span>
                         Sign Out
                     </a>
@@ -244,7 +224,7 @@
                     </button>
                     <div class="relative w-full max-w-md">
                         <span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
-                        <input id="archive-search" class="w-full bg-[#0F172A] border border-[#334155] rounded-lg py-xs pl-xl pr-sm text-white text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-colors h-9 placeholder:text-[#94A3B8]" placeholder="Search Donor ID, Organ, Location, Remarks..." type="text"/>
+                        <input id="archive-search" class="w-full bg-[#0F172A] border border-[#334155] rounded-lg py-xs pl-xl pr-sm text-white text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-colors h-9 placeholder:text-[#94A3B8]" placeholder="Search Donor ID, Organ, NMP/HMP, Location, Remarks..." type="text"/>
                     </div>
                 </div>
 
@@ -309,7 +289,7 @@
                         <span class="material-symbols-outlined text-[28px]">warning</span>
                     </div>
                     <div>
-                        <span class="text-xs uppercase text-on-surface-variant font-semibold">Flagged (>4h Isch)</span>
+                        <span class="text-xs uppercase text-on-surface-variant font-semibold">Flagged (>24h Isch)</span>
                         <h3 id="stat-flagged" class="font-headline-md text-headline-md font-bold text-error">--</h3>
                     </div>
                 </div>
@@ -350,6 +330,7 @@
                                 </th>
                                 <th class="p-sm">Donor ID & Tracking ID</th>
                                 <th class="p-sm">Organ</th>
+                                <th class="p-sm">Status / Modality</th>
                                 <th class="p-sm">Preservation</th>
                                 <th class="p-sm">Storage Location</th>
                                 <th class="p-sm">Cold Ischemia</th>
@@ -391,7 +372,7 @@
         }
 
         function handleSignOut() {
-            if (confirm('Sign out of Pathology Core session?')) {
+            if (confirm('Sign out of Tang Lab session?')) {
                 showToast('Signed out of session.', 'info');
             }
         }
@@ -401,7 +382,7 @@
             document.getElementById('stat-total').textContent = list.length;
             document.getElementById('stat-frozen').textContent = list.filter(i => i.preservation === '-80C Frozen').length;
             document.getElementById('stat-fixed').textContent = list.filter(i => i.preservation === 'Fixed').length;
-            document.getElementById('stat-flagged').textContent = list.filter(i => i.status === 'Flagged' || (i.coldIschemiaMinutes && i.coldIschemiaMinutes > 240)).length;
+            document.getElementById('stat-flagged').textContent = list.filter(i => i.status === 'Flagged' || (i.coldIschemiaMinutes && i.coldIschemiaMinutes > 1440)).length;
         }
 
         function renderArchiveTable() {
@@ -430,6 +411,10 @@
                         ? '<span class="bg-tertiary-container/10 text-tertiary-container text-xs uppercase font-bold px-2 py-0.5 rounded border border-tertiary-container/20 flex items-center gap-1 w-fit"><span class="w-1.5 h-1.5 rounded-full bg-tertiary-container animate-pulse"></span> Pending</span>'
                         : '<span class="bg-error/10 text-error text-xs uppercase font-bold px-2 py-0.5 rounded border border-error/20 flex items-center gap-1 w-fit"><span class="w-1.5 h-1.5 rounded-full bg-error"></span> Flagged</span>');
 
+                const statusBadges = (item.statusOptions && item.statusOptions.length)
+                    ? item.statusOptions.map(opt => `<span class="bg-secondary/15 text-secondary border border-secondary/30 px-1.5 py-0.5 rounded text-[11px] font-semibold">${opt}</span>`).join(' ')
+                    : '<span class="text-on-surface-variant text-xs">-</span>';
+
                 return `
                     <tr class="hover:bg-surface-container-high/40 transition-colors">
                         <td class="p-sm text-center">
@@ -447,9 +432,14 @@
                                 <span class="text-on-surface font-medium">${item.organ}</span>
                             </div>
                         </td>
+                        <td class="p-sm">
+                            <div class="flex flex-wrap gap-1">
+                                ${statusBadges}
+                            </div>
+                        </td>
                         <td class="p-sm text-on-surface-variant font-medium">${item.preservation}</td>
                         <td class="p-sm font-mono-data text-on-surface">${item.location || 'Unassigned'}</td>
-                        <td class="p-sm font-mono-data ${item.coldIschemiaMinutes > 240 ? 'text-error font-bold' : 'text-secondary'}">
+                        <td class="p-sm font-mono-data ${item.coldIschemiaMinutes > 1440 ? 'text-error font-bold' : 'text-secondary'}">
                             ${item.coldIschemia || 'N/A'}
                         </td>
                         <td class="p-sm text-xs text-on-surface-variant">
@@ -474,7 +464,6 @@
                 `;
             }).join('');
 
-            // Bind Individual Checkboxes
             document.querySelectorAll('.specimen-select-cb').forEach(cb => {
                 cb.addEventListener('change', (e) => {
                     const id = cb.getAttribute('data-id');
@@ -500,7 +489,12 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Check query param from global search
+            const settings = SpecimenStore.getSettings();
+            if (settings.labId) {
+                const navLabId = document.getElementById('nav-lab-id');
+                if (navLabId) navLabId.textContent = `Lab ID: ${settings.labId}`;
+            }
+
             const urlParams = new URLSearchParams(window.location.search);
             const q = urlParams.get('q');
             if (q) {
@@ -509,10 +503,8 @@
 
             renderArchiveTable();
 
-            // Search input listener
             document.getElementById('archive-search').addEventListener('input', renderArchiveTable);
 
-            // Organ Filter Pills
             const pills = document.querySelectorAll('#organ-filter-pills .filter-pill');
             pills.forEach(pill => {
                 pill.addEventListener('click', () => {
@@ -525,7 +517,6 @@
                 });
             });
 
-            // Select All Checkbox
             document.getElementById('select-all-specimens').addEventListener('change', (e) => {
                 const checked = e.target.checked;
                 const list = SpecimenStore.filter({ query: document.getElementById('archive-search').value.trim(), organ: currentFilterOrgan });
@@ -538,13 +529,11 @@
                 updateBatchDeleteButton();
             });
 
-            // Batch Export Button
             document.getElementById('btn-batch-export').addEventListener('click', () => {
-                SpecimenStore.exportToExcel(null, 'Pathology_Core_Archive_Export.xlsx');
+                SpecimenStore.exportToExcel(null, 'Tang_Lab_Archive_Export.xlsx');
                 showToast('Exported all specimens to Excel', 'success');
             });
 
-            // Batch Delete Button
             document.getElementById('btn-batch-delete').addEventListener('click', () => {
                 if (confirm(`Delete ${selectedSpecimenIds.size} selected specimen records permanently?`)) {
                     SpecimenStore.deleteBatch(Array.from(selectedSpecimenIds));
@@ -555,7 +544,6 @@
                 }
             });
 
-            // Listen for store change events
             window.addEventListener('pathology_store_change', renderArchiveTable);
         });
     </script>
