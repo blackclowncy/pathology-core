@@ -163,10 +163,22 @@
 
 ---
 
-### 2.8 实验室系统设置 [`settings.html`](file:///e:/Project/Web/pathology-core/settings.html)
-- **实验室配置管理**:
-  - 支持修改 Lab Station ID（默认为 `Tang Lab`）、机构名称、主任病理学家。
-- **全库数据备份与还原**:
+### 2.8 实验室系统设置与 Google Drive 云端自动备份 [`settings.html`](file:///e:/Project/Web/pathology-core/settings.html)
+- **【最新增加】Google Drive 自动化云备份引擎 (`GoogleDriveSync`)**:
+  - **背景与目的**：针对静态网站或本地运行时可能因更新网站/清除浏览器缓存导致的数据丢失风险，提供纯前端向指定 Google 账号网盘全自动同步备份的能力。
+  - **执行身份精确绑定**：通过 Google Apps Script 的「以我的身份执行 (Execute as: Me)」特性，确保所有备份 100% 精确保存到创建脚本的特定 Google 账号中（保存于专属 `Tang_Lab_Pathology_Backups` 文件夹）。
+  - **双格式云端备份**：
+    - `Tang_Lab_Specimens_Latest.xlsx`：最新的标准 Excel 工作表。
+    - `Tang_Lab_Pathology_Backup_Latest.json`：全量系统快照（包含全部样本、实验室配置及操作历史）。
+    - `Archive_History/Tang_Lab_Specimens_YYYY-MM-DD_HH-mm.xlsx`：时间戳历史版本留存。
+  - **自动同步触发机制**：
+    - **变更即备份 (Auto-backup on Change)**：登记新样本、编辑信息、批量删除或导入时，后台防抖自动静默上传。
+    - **顶部状态栏指示灯 (Cloud Status Badge)**：全站 7 个页面顶部导航栏实时展示云端同步状态（🟢 已同步 / 🔵 同步中 / ⚪ 未配置 / 🔴 异常），点击呼出控制卡片。
+    - **一键云端恢复 (Restore from Google Drive)**：更换电脑或清除缓存后，一键从 Google Drive 拉取最新备份无损恢复。
+  - **内置 1 分钟极速配置向导**：
+    - 设置页和弹窗均提供一键复制代码按钮 (`copyAppsScriptCode()`) 及简明步骤指引。
+    - 仓库内附标准脚本模板 [`docs/google_apps_script.js`](file:///e:/Project/Web/pathology-core/docs/google_apps_script.js)。
+- **全库本地数据备份与还原**:
   - 支持一键导出包含全部标本、设置及操作历史的 `.json` 快照文件。
   - 支持上传历史备份 JSON 立即全库恢复。
 - **出厂重置与安全清除**:
@@ -192,7 +204,9 @@
 | `af0bd2c` | `feat: complete specimen registration, storage, Excel import/export, and branch pages` | 全部 HTML/JS/README 新建与重构 |
 | `7a0c321` | `Update Lab ID to Tang Lab, update Cold Ischemia filters (<12h, 12-24h, >24h), and add Status checkboxes (NMP, HMP, Structure Image)` | `index.html`, `archive.html`, `dashboard.html`, `analytics.html`, `resources.html`, `settings.html`, `support.html`, `js/storage.js`, `js/common.js` |
 | `478218f` | `Fix viewport cutoff, restore natural scrolling across all pages, and add pb-32` | 7 个页面 HTML 布局调整 |
-| `(Latest)` | `feat: beautify archive page and add comprehensive specimen information editing` | `archive.html`, `js/common.js`, `walkthrough.md` |
+| `392564b` | `feat: beautify archive page and add comprehensive specimen information editing` | `archive.html`, `js/common.js`, `walkthrough.md` |
+| `b5872c1` | `fix: add backward-compatibility auto-migration for legacy localStorage specimen records` | `js/storage.js` |
+| `(Latest)` | `feat: implement automatic Google Drive Excel and JSON cloud backup & sync engine` | `settings.html`, `js/storage.js`, `js/common.js`, `docs/google_apps_script.js`, `analytics.html`, `resources.html`, `support.html` |
 
 全部代码已经通过本地语法校验（`node -c`）并成功推送到远程 GitHub 仓库 `main` 分支。
 

@@ -898,6 +898,418 @@ function openEmergencyLogModal() {
     };
 }
 
+// Google Apps Script Template Code
+const APPS_SCRIPT_CODE_TEMPLATE = `/**
+ * Tang Lab Pathology Core - Google Drive Auto-Backup & Sync Engine
+ * Deploy as: Web app (Execute as: Me, Access: Anyone)
+ */
+
+function doGet(e) {
+  return HtmlService.createHtmlOutput('<h2>Tang Lab Pathology Core Backup Service is Active</h2>');
+}
+
+function doPost(e) {
+  try {
+    var rawData = e.postData.contents;
+    var payload = JSON.parse(rawData);
+    var action = payload.action || 'backup';
+    var userEmail = Session.getActiveUser().getEmail() || Session.getEffectiveUser().getEmail() || 'Authenticated Google Account';
+
+    if (action === 'ping') {
+      var folder = getOrCreateFolder('Tang_Lab_Pathology_Backups');
+      return createJsonResponse({
+        success: true,
+        message: 'Google Drive connection successful!',
+        account: userEmail,
+        folderName: folder.getName(),
+        folderUrl: folder.getUrl(),
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    if (action === 'backup') {
+      var folder = getOrCreateFolder('Tang_Lab_Pathology_Backups');
+      var timestampStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone() || 'UTC', 'yyyy-MM-dd_HH-mm');
+
+      var excelFileUrl = '';
+      if (payload.excelBase64) {
+        var decodedExcel = Utilities.base64Decode(payload.excelBase64);
+        var excelBlob = Utilities.newBlob(decodedExcel, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'Tang_Lab_Specimens_Latest.xlsx');
+        var existingExcelFiles = folder.getFilesByName('Tang_Lab_Specimens_Latest.xlsx');
+        while (existingExcelFiles.hasNext()) {
+          existingExcelFiles.next().setTrashed(true);
+        }
+        var newExcelFile = folder.createFile(excelBlob);
+        excelFileUrl = newExcelFile.getUrl();
+
+        var archiveFolder = getOrCreateSubFolder(folder, 'Archive_History');
+        var archiveBlob = Utilities.newBlob(decodedExcel, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'Tang_Lab_Specimens_' + timestampStr + '.xlsx');
+        archiveFolder.createFile(archiveBlob);
+      }
+
+      var jsonFileUrl = '';
+      if (payload.jsonBackup) {
+        var jsonBlob = Utilities.newBlob(payload.jsonBackup, 'application/json', 'Tang_Lab_Pathology_Backup_Latest.json');
+        var existingJsonFiles = folder.getFilesByName('Tang_Lab_Pathology_Backup_Latest.json');
+        while (existingJsonFiles.hasNext()) {
+          existingJsonFiles.next().setTrashed(true);
+        }
+        var newJsonFile = folder.createFile(jsonBlob);
+        jsonFileUrl = newJsonFile.getUrl();
+      }
+
+      return createJsonResponse({
+        success: true,
+        message: 'Successfully backed up to Google Drive!',
+        account: userEmail,
+        folderUrl: folder.getUrl(),
+        excelUrl: excelFileUrl,
+        jsonUrl: jsonFileUrl,
+        specimenCount: payload.specimenCount || 0,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    if (action === 'restore') {
+      var folder = getOrCreateFolder('Tang_Lab_Pathology_Backups');
+      var jsonFiles = folder.getFilesByName('Tang_Lab_Pathology_Backup_Latest.json');
+      if (jsonFiles.hasNext()) {
+        var file = jsonFiles.next();
+        var content = file.getBlob().getDataAsString();
+        var parsedData = JSON.parse(content);
+        return createJsonResponse({
+          success: true,
+          message: 'Latest backup retrieved from Google Drive',
+          data: parsedData,
+          updatedAt: file.getLastUpdated().toISOString()
+        });
+      } else {
+        return createJsonResponse({
+          success: false,
+          error: 'No backup file (Tang_Lab_Pathology_Backup_Latest.json) found in your Google Drive.'
+        });
+      }
+    }
+
+    return createJsonResponse({ success: false, error: 'Unknown action: ' + action });
+
+  } catch (err) {
+    return createJsonResponse({
+      success: false,
+      error: err.toString()
+    });
+  }
+}
+
+function getOrCreateFolder(folderName) {
+  var folders = DriveApp.getFoldersByName(folderName);
+  if (folders.hasNext()) return folders.next();
+  return DriveApp.createFolder(folderName);
+}
+
+function getOrCreateSubFolder(parentFolder, subFolderName) {
+  var folders = parentFolder.getFoldersByName(subFolderName);
+  if (folders.hasNext()) return folders.next();
+  return parentFolder.createFolder(subFolderName);
+}
+
+function createJsonResponse(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}`;
+
+// Copy Apps Script Code to Clipboard
+function copyAppsScriptCode() {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(APPS_SCRIPT_CODE_TEMPLATE).then(() => {
+            showToast('Google Apps Script code copied to clipboard!', 'success');
+        }).catch(() => {
+            prompt('Copy Google Apps Script code:', APPS_SCRIPT_CODE_TEMPLATE);
+        });
+    } else {
+        prompt('Copy Google Apps Script code:', APPS_SCRIPT_CODE_TEMPLATE);
+    }
+}
+
+// Google Drive Setup Modal
+function openGoogleDriveSetupModal() {
+    let modal = document.getElementById('gdrive-setup-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'gdrive-setup-modal';
+        modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden';
+        document.body.appendChild(modal);
+    }
+
+    const config = SpecimenStore.getDriveConfig();
+
+    modal.innerHTML = `
+        <div class="glass-panel bg-surface-container-low border border-[#334155] rounded-xl max-w-2xl w-full max-h-[90vh] flex flex-col glow-shadow overflow-hidden">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between p-md border-b border-outline-variant bg-surface-container">
+                <div class="flex items-center gap-sm">
+                    <div class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined text-[20px]">cloud_sync</span>
+                    </div>
+                    <div>
+                        <h2 class="font-headline-sm text-headline-sm font-bold text-on-surface">Google Drive Auto-Backup Setup</h2>
+                        <span class="text-xs text-on-surface-variant">Save Excel & JSON backups directly to your personal Google Drive</span>
+                    </div>
+                </div>
+                <button class="text-on-surface-variant hover:text-white p-1 rounded-lg transition-colors" onclick="document.getElementById('gdrive-setup-modal').classList.add('hidden')">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-lg overflow-y-auto flex flex-col gap-md text-sm">
+                <!-- Step 1 & 2 Instructions -->
+                <div class="bg-surface-container/50 p-md rounded-lg border border-outline-variant/30 flex flex-col gap-sm">
+                    <div class="flex items-start gap-2">
+                        <span class="w-5 h-5 rounded-full bg-primary/20 text-primary font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">1</span>
+                        <div>
+                            <span class="font-bold text-on-surface">Open Google Apps Script:</span>
+                            <p class="text-xs text-on-surface-variant mt-0.5">Log into the Google Account where you want to store your lab backups, then open <a href="https://script.google.com" target="_blank" class="text-primary underline hover:text-primary-fixed">script.google.com</a> and click <strong>"+ New project"</strong>.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-2 border-t border-outline-variant/20 pt-sm">
+                        <span class="w-5 h-5 rounded-full bg-primary/20 text-primary font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">2</span>
+                        <div class="flex-1">
+                            <span class="font-bold text-on-surface">Paste the Backup Script:</span>
+                            <p class="text-xs text-on-surface-variant mt-0.5">Delete any placeholder code in the editor, and paste our automated backup script.</p>
+                            <button type="button" onclick="copyAppsScriptCode()" class="mt-2 px-3 py-1.5 rounded bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 text-xs font-bold flex items-center gap-1.5 transition-colors">
+                                <span class="material-symbols-outlined text-[16px]">content_copy</span> Copy Script Code to Clipboard
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-2 border-t border-outline-variant/20 pt-sm">
+                        <span class="w-5 h-5 rounded-full bg-primary/20 text-primary font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">3</span>
+                        <div>
+                            <span class="font-bold text-on-surface">Deploy as Web App:</span>
+                            <p class="text-xs text-on-surface-variant mt-0.5">
+                                Click <strong>Deploy</strong> &rarr; <strong>New deployment</strong> &rarr; Click gear icon (Web app).<br/>
+                                Set <strong>Execute as: Me (your Google account)</strong> and <strong>Who has access: Anyone</strong>.<br/>
+                                Click <strong>Deploy</strong>, grant permissions, and copy the <strong>Web app URL</strong>.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Webhook URL Configuration Form -->
+                <div class="flex flex-col gap-sm">
+                    <label class="text-xs uppercase font-semibold text-on-surface-variant flex items-center justify-between">
+                        <span>Google Apps Script Web App URL</span>
+                        ${config.lastAccount ? `<span class="text-[11px] text-secondary font-mono-data">Connected Account: ${config.lastAccount}</span>` : ''}
+                    </label>
+                    <input id="modal-gdrive-webhook-url" type="url" placeholder="https://script.google.com/macros/s/.../exec" value="${config.webhookUrl || ''}" class="input-clinical bg-[#0F172A] text-white w-full rounded-md p-2 font-mono-data text-xs"/>
+                </div>
+
+                <!-- Auto-Sync Toggle -->
+                <label class="flex items-center gap-2 cursor-pointer bg-surface-container/30 p-sm rounded-lg border border-outline-variant/30">
+                    <input id="modal-gdrive-autosync-cb" type="checkbox" class="checkbox-clinical" ${config.autoSync ? 'checked' : ''}/>
+                    <div class="flex flex-col">
+                        <span class="text-xs font-bold text-on-surface">Auto-backup on specimen changes</span>
+                        <span class="text-[11px] text-on-surface-variant">Automatically upload new Excel & JSON snapshots whenever specimens are added, edited, or removed.</span>
+                    </div>
+                </label>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="flex justify-between items-center p-md border-t border-outline-variant bg-surface-container">
+                <button type="button" onclick="document.getElementById('gdrive-setup-modal').classList.add('hidden')" class="px-4 py-1.5 rounded border border-outline-variant text-on-surface-variant hover:text-white text-xs font-semibold">
+                    Close
+                </button>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="btn-modal-test-gdrive" class="px-4 py-1.5 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant text-xs text-on-surface font-semibold flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[16px]">network_check</span> Test Connection
+                    </button>
+                    <button type="button" id="btn-modal-save-gdrive" class="px-4 py-1.5 rounded bg-primary hover:bg-primary-fixed text-on-primary text-xs font-bold flex items-center gap-1 shadow-sm">
+                        <span class="material-symbols-outlined text-[16px]">save</span> Save & Sync Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    modal.classList.remove('hidden');
+
+    document.getElementById('btn-modal-test-gdrive').onclick = async () => {
+        const url = document.getElementById('modal-gdrive-webhook-url').value.trim();
+        if (!url) {
+            showToast('Please enter a Web App URL first.', 'error');
+            return;
+        }
+        showToast('Testing Google Drive connection...', 'info');
+        const res = await SpecimenStore.testDriveConnection(url);
+        if (res.success) {
+            showToast(`Connection verified! Target Account: ${res.account || 'Google Drive'}`, 'success');
+        } else {
+            showToast(`Connection failed: ${res.error}`, 'error');
+        }
+    };
+
+    document.getElementById('btn-modal-save-gdrive').onclick = async () => {
+        const url = document.getElementById('modal-gdrive-webhook-url').value.trim();
+        const autoSync = document.getElementById('modal-gdrive-autosync-cb').checked;
+        SpecimenStore.saveDriveConfig({ webhookUrl: url, autoSync });
+        showToast('Google Drive settings saved!', 'success');
+        if (url) {
+            await SpecimenStore.syncToGoogleDrive({ manual: true });
+        }
+        modal.classList.add('hidden');
+    };
+}
+
+// Cloud Sync Topbar Popup Dropdown
+function toggleCloudSyncPopup() {
+    let dropdown = document.getElementById('gdrive-sync-dropdown');
+    if (!dropdown) {
+        dropdown = document.createElement('div');
+        dropdown.id = 'gdrive-sync-dropdown';
+        dropdown.className = 'glass-panel bg-surface-container-low border border-outline-variant rounded-xl p-md glow-shadow absolute right-0 top-12 w-80 z-50 flex flex-col gap-sm shadow-xl hidden';
+        
+        const btn = document.getElementById('gdrive-cloud-btn');
+        if (btn && btn.parentElement) {
+            btn.parentElement.classList.add('relative');
+            btn.parentElement.appendChild(dropdown);
+        } else {
+            document.body.appendChild(dropdown);
+        }
+    }
+
+    const config = SpecimenStore.getDriveConfig();
+    const isConnected = Boolean(config.webhookUrl);
+    const lastSyncStr = config.lastSyncTime ? formatRelativeTime(config.lastSyncTime) : 'Never';
+
+    let statusBadge = '<span class="bg-surface-container-high text-on-surface-variant text-[11px] px-2 py-0.5 rounded font-semibold">Not Configured</span>';
+    if (isConnected) {
+        if (config.lastStatus === 'syncing') {
+            statusBadge = '<span class="bg-primary/20 text-primary text-[11px] px-2 py-0.5 rounded font-semibold flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> Syncing...</span>';
+        } else if (config.lastStatus === 'success') {
+            statusBadge = '<span class="bg-secondary/20 text-secondary text-[11px] px-2 py-0.5 rounded font-semibold flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Connected</span>';
+        } else if (config.lastStatus === 'error') {
+            statusBadge = '<span class="bg-error/20 text-error text-[11px] px-2 py-0.5 rounded font-semibold flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-error"></span> Sync Error</span>';
+        }
+    }
+
+    dropdown.innerHTML = `
+        <div class="flex items-center justify-between border-b border-outline-variant/30 pb-xs">
+            <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-primary text-[18px]">cloud_sync</span>
+                <span class="text-xs font-bold text-on-surface">Google Drive Cloud Sync</span>
+            </div>
+            ${statusBadge}
+        </div>
+
+        <div class="flex flex-col gap-1 text-xs">
+            <div class="flex justify-between text-on-surface-variant">
+                <span>Account / Target:</span>
+                <span class="font-mono-data text-on-surface font-semibold truncate max-w-[150px]">${config.lastAccount || 'Tang Lab Drive'}</span>
+            </div>
+            <div class="flex justify-between text-on-surface-variant">
+                <span>Last Cloud Backup:</span>
+                <span class="text-on-surface font-medium">${lastSyncStr}</span>
+            </div>
+            <div class="flex justify-between text-on-surface-variant">
+                <span>Auto-Backup:</span>
+                <span class="${config.autoSync ? 'text-secondary' : 'text-on-surface-variant'} font-semibold">${config.autoSync ? 'Enabled' : 'Disabled'}</span>
+            </div>
+        </div>
+
+        ${config.lastFolderUrl ? `
+            <a href="${config.lastFolderUrl}" target="_blank" class="text-xs text-primary hover:underline flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">folder_open</span> Open in Google Drive
+            </a>
+        ` : ''}
+
+        <div class="flex flex-col gap-1.5 border-t border-outline-variant/30 pt-xs mt-1">
+            ${isConnected ? `
+                <button id="btn-popup-sync-now" class="w-full py-1.5 rounded bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 text-xs font-bold flex items-center justify-center gap-1 transition-colors">
+                    <span class="material-symbols-outlined text-[16px]">sync</span> Backup to Drive Now
+                </button>
+                <button id="btn-popup-restore-now" class="w-full py-1.5 rounded bg-secondary/15 hover:bg-secondary/25 text-secondary border border-secondary/30 text-xs font-bold flex items-center justify-center gap-1 transition-colors">
+                    <span class="material-symbols-outlined text-[16px]">cloud_download</span> Restore from Drive
+                </button>
+            ` : ''}
+            <button onclick="openGoogleDriveSetupModal(); document.getElementById('gdrive-sync-dropdown').classList.add('hidden');" class="w-full py-1.5 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant text-xs text-on-surface font-semibold flex items-center justify-center gap-1 transition-colors">
+                <span class="material-symbols-outlined text-[16px]">settings</span> ${isConnected ? 'Configure Sync' : 'Setup Google Drive'}
+            </button>
+        </div>
+    `;
+
+    dropdown.classList.toggle('hidden');
+
+    if (isConnected) {
+        const syncBtn = document.getElementById('btn-popup-sync-now');
+        if (syncBtn) {
+            syncBtn.onclick = async () => {
+                await SpecimenStore.syncToGoogleDrive({ manual: true });
+                toggleCloudSyncPopup();
+            };
+        }
+        const restoreBtn = document.getElementById('btn-popup-restore-now');
+        if (restoreBtn) {
+            restoreBtn.onclick = async () => {
+                if (confirm('Restore and merge all specimens from Google Drive backup?')) {
+                    await SpecimenStore.restoreFromGoogleDrive();
+                    toggleCloudSyncPopup();
+                }
+            };
+        }
+    }
+}
+
+// Update Topbar Cloud Sync Icon Badge
+function renderCloudSyncIcon() {
+    const btn = document.getElementById('gdrive-cloud-btn');
+    if (!btn) return;
+
+    const config = SpecimenStore.getDriveConfig();
+    const icon = btn.querySelector('.material-symbols-outlined');
+    if (!icon) return;
+
+    if (!config.webhookUrl) {
+        icon.textContent = 'cloud_off';
+        icon.className = 'material-symbols-outlined text-on-surface-variant hover:text-white text-[20px] transition-colors';
+        btn.title = 'Google Drive Auto-Backup: Not Configured (Click to setup)';
+    } else if (config.lastStatus === 'syncing') {
+        icon.textContent = 'cloud_sync';
+        icon.className = 'material-symbols-outlined text-primary text-[20px] animate-spin';
+        btn.title = 'Google Drive: Syncing in progress...';
+    } else if (config.lastStatus === 'error') {
+        icon.textContent = 'sync_problem';
+        icon.className = 'material-symbols-outlined text-error text-[20px] animate-pulse';
+        btn.title = `Google Drive Sync Error: ${config.lastError || 'Failed'}`;
+    } else {
+        icon.textContent = 'cloud_done';
+        icon.className = 'material-symbols-outlined text-secondary text-[20px] transition-colors';
+        btn.title = `Google Drive: Synced (${config.lastSyncTime ? formatRelativeTime(config.lastSyncTime) : 'Ready'})`;
+    }
+}
+
+// Initialize Topbar Cloud Sync button if not present in markup
+function initCloudSyncTopbarButton() {
+    const headerActions = document.querySelector('header .flex.items-center.gap-sm.border-l');
+    if (headerActions && !document.getElementById('gdrive-cloud-btn')) {
+        const cloudBtnContainer = document.createElement('div');
+        cloudBtnContainer.className = 'relative flex items-center';
+        cloudBtnContainer.innerHTML = `
+            <button id="gdrive-cloud-btn" class="text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center p-1 rounded-lg hover:bg-surface-container-high" title="Google Drive Cloud Sync">
+                <span class="material-symbols-outlined text-[20px]">cloud_off</span>
+            </button>
+        `;
+        headerActions.insertBefore(cloudBtnContainer, headerActions.firstChild);
+
+        document.getElementById('gdrive-cloud-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleCloudSyncPopup();
+        });
+    }
+    renderCloudSyncIcon();
+}
+
 // Pathologist Profile Modal
 function openProfileModal() {
     let modal = document.getElementById('profile-modal');
@@ -974,14 +1386,28 @@ document.addEventListener('DOMContentLoaded', () => {
         av.addEventListener('click', openProfileModal);
     });
 
+    // Initialize Cloud Sync Button
+    initCloudSyncTopbarButton();
+
     document.addEventListener('click', (e) => {
         const notifPopup = document.getElementById('notifications-dropdown');
         const histPopup = document.getElementById('history-dropdown');
+        const gdrivePopup = document.getElementById('gdrive-sync-dropdown');
         if (notifPopup && !notifPopup.classList.contains('hidden') && !notifPopup.contains(e.target) && !e.target.closest('button')?.innerText?.includes('notifications')) {
             notifPopup.classList.add('hidden');
         }
         if (histPopup && !histPopup.classList.contains('hidden') && !histPopup.contains(e.target) && !e.target.closest('button')?.innerText?.includes('history')) {
             histPopup.classList.add('hidden');
         }
+        if (gdrivePopup && !gdrivePopup.classList.contains('hidden') && !gdrivePopup.contains(e.target) && !e.target.closest('#gdrive-cloud-btn')) {
+            gdrivePopup.classList.add('hidden');
+        }
     });
+
+    // Listen for Cloud Sync status changes
+    window.addEventListener('pathology_gdrive_config_change', renderCloudSyncIcon);
+    window.addEventListener('pathology_gdrive_sync_start', renderCloudSyncIcon);
+    window.addEventListener('pathology_gdrive_sync_success', renderCloudSyncIcon);
+    window.addEventListener('pathology_gdrive_sync_error', renderCloudSyncIcon);
 });
+

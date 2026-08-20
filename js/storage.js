@@ -8,7 +8,18 @@ const STORAGE_KEYS = {
     SPECIMENS: 'pathology_core_specimens_v2',
     SETTINGS: 'pathology_core_settings_v2',
     HISTORY: 'pathology_core_history_v2',
-    NOTIFICATIONS: 'pathology_core_notifications_v2'
+    NOTIFICATIONS: 'pathology_core_notifications_v2',
+    GDRIVE: 'pathology_core_gdrive_config_v1'
+};
+
+const DEFAULT_GDRIVE_CONFIG = {
+    webhookUrl: '',
+    autoSync: true,
+    lastSyncTime: null,
+    lastFolderUrl: '',
+    lastAccount: '',
+    lastStatus: 'idle', // 'idle', 'syncing', 'success', 'error'
+    lastError: ''
 };
 
 // Default seed specimens with updated Lab and Status options (NMP, HMP, Structure Image)
@@ -330,6 +341,7 @@ const SpecimenStore = {
 
         localStorage.setItem(STORAGE_KEYS.SPECIMENS, JSON.stringify(list));
         this.dispatchChangeEvent();
+        this.triggerAutoDriveSync();
         return specimen;
     },
 
@@ -342,6 +354,7 @@ const SpecimenStore = {
             localStorage.setItem(STORAGE_KEYS.SPECIMENS, JSON.stringify(list));
             this.addHistory('Deleted', target.donorId);
             this.dispatchChangeEvent();
+            this.triggerAutoDriveSync();
             return true;
         }
         return false;
@@ -355,6 +368,7 @@ const SpecimenStore = {
         localStorage.setItem(STORAGE_KEYS.SPECIMENS, JSON.stringify(list));
         this.addHistory('Batch Deleted', `${initialCount - list.length} records`);
         this.dispatchChangeEvent();
+        this.triggerAutoDriveSync();
         return true;
     },
 
@@ -635,6 +649,243 @@ const SpecimenStore = {
         this.addHistory('Imported', `${importedList.length} records`);
         this.addNotification('Batch Import Successful', `Imported ${importedList.length} specimen records into Tang Lab.`, 'info');
         this.dispatchChangeEvent();
+        this.triggerAutoDriveSync();
+    },
+
+    // Google Drive Cloud Auto-Backup & Sync Engine
+    getDriveConfig() {
+        this.init();
+        try {
+            const raw = localStorage.getItem(STORAGE_KEYS.GDRIVE);
+            return raw ? { ...DEFAULT_GDRIVE_CONFIG, ...JSON.parse(raw) } : { ...DEFAULT_GDRIVE_CONFIG };
+        } catch (e) {
+            return { ...DEFAULT_GDRIVE_CONFIG };
+        }
+    },
+
+    saveDriveConfig(config) {
+        const current = this.getDriveConfig();
+        const updated = { ...current, ...config };
+        localStorage.setItem(STORAGE_KEYS.GDRIVE, JSON.stringify(updated));
+        window.dispatchEvent(new CustomEvent('pathology_gdrive_config_change', { detail: updated }));
+        return updated;
+    },
+
+    _gdriveDebounceTimer: null,
+
+    triggerAutoDriveSync() {
+        try {
+            const config = this.getDriveConfig();
+            if (config.webhookUrl && config.autoSync) {
+                if (this._gdriveDebounceTimer) clearTimeout(this._gdriveDebounceTimer);
+                this._gdriveDebounceTimer = setTimeout(() => {
+                    this.syncToGoogleDrive({ manual: false, silent: true });
+                }, 3000); // 3-second debounce
+            }
+        } catch (e) {
+            console.error('Error triggering auto drive sync:', e);
+        }
+    },
+
+    async testDriveConnection(webhookUrl) {
+        const url = (webhookUrl || this.getDriveConfig().webhookUrl || '').trim();
+        if (!url) {
+            return { success: false, error: 'Google Drive Webhook URL is empty.' };
+        }
+
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    action: 'ping',
+                    timestamp: new Date().toISOString()
+                })
+            });
+
+            if (!res.ok) {
+                return { success: false, error: `HTTP ${res.status}: ${res.statusText}` };
+            }
+
+            const data = await res.json();
+            if (data.success) {
+                this.saveDriveConfig({
+                    webhookUrl: url,
+                    lastFolderUrl: data.folderUrl || '',
+                    lastAccount: data.account || '',
+                    lastStatus: 'success',
+                    lastError: ''
+                });
+            }
+            return data;
+        } catch (err) {
+            return { success: false, error: err.message || 'Network error connecting to Google Apps Script.' };
+        }
+    },
+
+    async syncToGoogleDrive({ manual = false, silent = false } = {}) {
+        const config = this.getDriveConfig();
+        const url = (config.webhookUrl || '').trim();
+        if (!url) {
+            if (manual && !silent && typeof showToast === 'function') {
+                showToast('Please configure your Google Drive Webhook in Settings first.', 'warning');
+            }
+            return { success: false, error: 'Webhook URL not configured' };
+        }
+
+        this.saveDriveConfig({ lastStatus: 'syncing' });
+        window.dispatchEvent(new CustomEvent('pathology_gdrive_sync_start'));
+
+        try {
+            const specimens = this.getAll();
+            const settings = this.getSettings();
+            const history = this.getHistory();
+
+            // 1. Generate Excel Base64
+            let excelBase64 = '';
+            if (typeof XLSX !== 'undefined') {
+                const exportData = specimens.map(item => ({
+                    'Tracking ID': item.tid || item.id,
+                    'Donor ID': item.donorId,
+                    'Organ Type': item.organ,
+                    'Position': item.position || '',
+                    'Preservation Method': item.preservation,
+                    'Storage Location': item.location,
+                    'Status / Modality': (item.statusOptions || []).join('; '),
+                    'Histology': item.histology ? 'Yes' : 'No',
+                    'Age': item.age || '',
+                    'Gender': item.gender || '',
+                    'BMI (kg/m²)': item.bmi || '',
+                    'Cause of Death': item.causeOfDeath || '',
+                    'Warm Ischemia (min)': item.warmIschemiaNA ? 'N/A' : (item.warmIschemia || ''),
+                    'Clamp Time': item.clampTime || '',
+                    'Collection Time': item.collectionTime || '',
+                    'Cold Ischemia Duration': item.coldIschemia || '',
+                    'Cold Ischemia (mins)': item.coldIschemiaMinutes || 0,
+                    'Medical History': (item.medicalHistory || []).join('; '),
+                    'Clinical Remarks': item.remarks || '',
+                    'Status': item.status || 'Clear',
+                    'Registered Date': item.createdAt || ''
+                }));
+
+                const ws = XLSX.utils.json_to_sheet(exportData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Specimens');
+                excelBase64 = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
+            }
+
+            // 2. Generate JSON snapshot
+            const jsonBackup = JSON.stringify({
+                version: '2.0',
+                exportedAt: new Date().toISOString(),
+                specimens,
+                settings,
+                history
+            }, null, 2);
+
+            const payload = {
+                action: 'backup',
+                labId: settings.labId || 'Tang Lab',
+                specimenCount: specimens.length,
+                excelBase64,
+                jsonBackup,
+                timestamp: new Date().toISOString()
+            };
+
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+
+            const result = await res.json();
+            if (!result.success) {
+                throw new Error(result.error || 'Google Drive backup failed.');
+            }
+
+            const now = new Date().toISOString();
+            this.saveDriveConfig({
+                lastSyncTime: now,
+                lastFolderUrl: result.folderUrl || config.lastFolderUrl || '',
+                lastAccount: result.account || config.lastAccount || '',
+                lastStatus: 'success',
+                lastError: ''
+            });
+
+            this.addHistory('Cloud Synced', `${specimens.length} specimens to Google Drive`);
+            if (manual && !silent && typeof showToast === 'function') {
+                showToast(`Backed up ${specimens.length} specimens to Google Drive!`, 'success');
+            }
+            window.dispatchEvent(new CustomEvent('pathology_gdrive_sync_success', { detail: result }));
+            return result;
+
+        } catch (err) {
+            console.error('Google Drive Sync Error:', err);
+            this.saveDriveConfig({
+                lastStatus: 'error',
+                lastError: err.message || 'Sync failed'
+            });
+            if (manual && !silent && typeof showToast === 'function') {
+                showToast(`Google Drive sync error: ${err.message}`, 'error');
+            }
+            window.dispatchEvent(new CustomEvent('pathology_gdrive_sync_error', { detail: err }));
+            return { success: false, error: err.message };
+        }
+    },
+
+    async restoreFromGoogleDrive() {
+        const config = this.getDriveConfig();
+        const url = (config.webhookUrl || '').trim();
+        if (!url) {
+            if (typeof showToast === 'function') {
+                showToast('Google Drive Webhook is not configured.', 'error');
+            }
+            return { success: false, error: 'Webhook URL missing' };
+        }
+
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    action: 'restore',
+                    timestamp: new Date().toISOString()
+                })
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+
+            const result = await res.json();
+            if (!result.success || !result.data) {
+                throw new Error(result.error || 'Failed to retrieve backup from Google Drive.');
+            }
+
+            const backup = result.data;
+            if (backup.specimens && Array.isArray(backup.specimens)) {
+                this.mergeImported(backup.specimens);
+                if (backup.settings) {
+                    this.saveSettings({ ...this.getSettings(), ...backup.settings });
+                }
+                if (typeof showToast === 'function') {
+                    showToast(`Restored ${backup.specimens.length} specimens from Google Drive!`, 'success');
+                }
+                this.dispatchChangeEvent();
+                return { success: true, count: backup.specimens.length };
+            } else {
+                throw new Error('Invalid backup structure in Google Drive.');
+            }
+        } catch (err) {
+            if (typeof showToast === 'function') {
+                showToast(`Restore failed: ${err.message}`, 'error');
+            }
+            return { success: false, error: err.message };
+        }
     },
 
     // Settings helpers

@@ -252,13 +252,94 @@
                 </form>
             </div>
 
-            <!-- Section 2: Data Persistence & Backup -->
+            <!-- Section 2: Google Drive Cloud Auto-Backup & Sync Engine -->
+            <div id="gdrive-section" class="glass-panel p-lg rounded-xl border border-primary/30 flex flex-col gap-md glow-shadow">
+                <div class="flex items-center justify-between border-b border-outline-variant/30 pb-sm">
+                    <div class="flex items-center gap-sm">
+                        <div class="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                            <span class="material-symbols-outlined text-[22px]">cloud_sync</span>
+                        </div>
+                        <div>
+                            <h2 class="font-headline-sm text-headline-sm font-bold text-on-surface">Google Drive Cloud Auto-Backup & Sync</h2>
+                            <span class="text-xs text-on-surface-variant">Prevent data loss on site updates by auto-saving Excel (.xlsx) & JSON snapshots to Google Drive</span>
+                        </div>
+                    </div>
+                    <div id="settings-gdrive-status-badge">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Webhook URL & Connection -->
+                <div class="grid grid-cols-1 gap-md">
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs uppercase font-semibold text-on-surface-variant">Google Apps Script Web App URL</label>
+                            <span id="settings-gdrive-account-label" class="text-xs text-secondary font-mono-data"></span>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <input id="set-gdrive-url" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="input-clinical rounded p-2 text-sm text-white font-mono-data flex-1"/>
+                            <button type="button" id="btn-settings-test-gdrive" class="px-4 py-2 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant text-xs text-on-surface font-semibold flex items-center justify-center gap-1 transition-colors whitespace-nowrap">
+                                <span class="material-symbols-outlined text-[16px]">network_check</span> Test Connection
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Auto Sync Toggle -->
+                    <label class="flex items-center gap-3 cursor-pointer bg-surface-container/50 p-md rounded-lg border border-outline-variant/30 hover:border-primary/40 transition-colors">
+                        <input id="set-gdrive-autosync" type="checkbox" class="checkbox-clinical w-4 h-4 rounded text-primary"/>
+                        <div class="flex flex-col">
+                            <span class="text-xs font-bold text-on-surface">Auto-backup on specimen changes</span>
+                            <span class="text-[11px] text-on-surface-variant">Automatically upload new Excel (.xlsx) and JSON snapshots whenever specimens are added, edited, or removed.</span>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Cloud Actions Bar -->
+                <div class="flex flex-wrap items-center justify-between gap-sm border-t border-outline-variant/30 pt-md">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" id="btn-settings-sync-gdrive" class="px-4 py-2 rounded bg-primary hover:bg-primary-fixed text-on-primary font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm">
+                            <span class="material-symbols-outlined text-[16px]">cloud_upload</span> Backup to Drive Now
+                        </button>
+                        <button type="button" id="btn-settings-restore-gdrive" class="px-4 py-2 rounded bg-secondary/20 hover:bg-secondary/30 text-secondary border border-secondary/30 font-bold text-xs flex items-center gap-1.5 transition-colors">
+                            <span class="material-symbols-outlined text-[16px]">cloud_download</span> Restore from Google Drive
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-sm">
+                        <a id="link-open-gdrive" href="https://drive.google.com" target="_blank" class="text-xs text-primary hover:underline flex items-center gap-1 font-medium hidden">
+                            <span class="material-symbols-outlined text-[16px]">folder_open</span> Open Google Drive Folder
+                        </a>
+                        <button type="button" onclick="openGoogleDriveSetupModal()" class="text-xs text-on-surface-variant hover:text-white underline">
+                            Setup Guide
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Setup Collapsible Guide -->
+                <div class="bg-surface-container-low/60 rounded-lg p-md border border-outline-variant/20 flex flex-col gap-sm text-xs">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-on-surface flex items-center gap-1 text-primary">
+                            <span class="material-symbols-outlined text-[16px]">info</span> How to set up Google Drive Cloud Sync in 1 minute:
+                        </span>
+                        <button type="button" onclick="copyAppsScriptCode()" class="px-2.5 py-1 rounded bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 text-[11px] font-bold flex items-center gap-1 transition-colors">
+                            <span class="material-symbols-outlined text-[14px]">content_copy</span> Copy Script Code
+                        </button>
+                    </div>
+                    <ol class="list-decimal list-inside text-on-surface-variant space-y-1 pl-1">
+                        <li>Log into your target Google Account and open <a href="https://script.google.com" target="_blank" class="text-primary underline">script.google.com</a> &rarr; click <strong>"+ New project"</strong>.</li>
+                        <li>Click <strong>"Copy Script Code"</strong> above, paste it into the editor (replace default content), and click Save.</li>
+                        <li>Click <strong>Deploy</strong> &rarr; <strong>New deployment</strong> &rarr; Type: <strong>Web app</strong> (Execute as: <em>Me</em>, Access: <em>Anyone</em>) &rarr; Copy the <strong>Web app URL</strong> and paste it into the box above.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- Section 3: Data Persistence & Backup -->
             <div class="glass-panel p-lg rounded-xl border border-outline-variant/40 flex flex-col gap-md">
                 <div class="flex items-center gap-sm border-b border-outline-variant/30 pb-sm">
                     <span class="material-symbols-outlined text-secondary text-[24px]">database</span>
                     <div>
-                        <h2 class="font-headline-sm text-headline-sm font-bold text-on-surface">Specimen Database Backup & Restore</h2>
-                        <span class="text-xs text-on-surface-variant">JSON snapshots, emergency restores, and demo seeding</span>
+                        <h2 class="font-headline-sm text-headline-sm font-bold text-on-surface">Local Specimen Database Backup & Restore</h2>
+                        <span class="text-xs text-on-surface-variant">Offline JSON snapshots, emergency restores, and demo seeding</span>
                     </div>
                 </div>
 
@@ -288,9 +369,9 @@
                 </div>
             </div>
 
-            <!-- Section 3: Reset / Danger Zone -->
+            <!-- Section 4: Reset / Danger Zone -->
             <div class="glass-panel p-lg rounded-xl border border-error/30 flex flex-col gap-md">
-                <div class="flex items-center gap-sm border-b border-error/20 pb-sm">
+                <div class="flex items-center gap-sm border-error/20 pb-sm">
                     <span class="material-symbols-outlined text-error text-[24px]">dangerous</span>
                     <div>
                         <h2 class="font-headline-sm text-headline-sm font-bold text-error">Database Maintenance & Reset</h2>
@@ -322,6 +403,7 @@
         </main>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/common.js"></script>
 
@@ -355,12 +437,48 @@
             }
         }
 
+        function renderGDriveSettingsUI() {
+            const config = SpecimenStore.getDriveConfig();
+            const urlInput = document.getElementById('set-gdrive-url');
+            const autoSyncCb = document.getElementById('set-gdrive-autosync');
+            const statusBadge = document.getElementById('settings-gdrive-status-badge');
+            const accountLabel = document.getElementById('settings-gdrive-account-label');
+            const driveLink = document.getElementById('link-open-gdrive');
+
+            if (urlInput) urlInput.value = config.webhookUrl || '';
+            if (autoSyncCb) autoSyncCb.checked = Boolean(config.autoSync);
+
+            if (config.lastAccount && accountLabel) {
+                accountLabel.textContent = `Target Account: ${config.lastAccount}`;
+            }
+
+            if (config.lastFolderUrl && driveLink) {
+                driveLink.href = config.lastFolderUrl;
+                driveLink.classList.remove('hidden');
+            }
+
+            if (statusBadge) {
+                if (!config.webhookUrl) {
+                    statusBadge.innerHTML = '<span class="bg-surface-container-high text-on-surface-variant text-xs px-2.5 py-1 rounded font-semibold">Not Configured</span>';
+                } else if (config.lastStatus === 'syncing') {
+                    statusBadge.innerHTML = '<span class="bg-primary/20 text-primary text-xs px-2.5 py-1 rounded font-semibold flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span> Syncing...</span>';
+                } else if (config.lastStatus === 'success') {
+                    const timeStr = config.lastSyncTime ? formatRelativeTime(config.lastSyncTime) : 'Ready';
+                    statusBadge.innerHTML = `<span class="bg-secondary/20 text-secondary text-xs px-2.5 py-1 rounded font-semibold flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-secondary"></span> Synced (${timeStr})</span>`;
+                } else if (config.lastStatus === 'error') {
+                    statusBadge.innerHTML = '<span class="bg-error/20 text-error text-xs px-2.5 py-1 rounded font-semibold flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-error"></span> Sync Error</span>';
+                }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const settings = SpecimenStore.getSettings();
             if (settings.labId) document.getElementById('set-lab-id').value = settings.labId;
             if (settings.institution) document.getElementById('set-institution').value = settings.institution;
             if (settings.leadPathologist) document.getElementById('set-pathologist').value = settings.leadPathologist;
             if (settings.ischemiaAlertThresholdHours) document.getElementById('set-ischemia-thresh').value = settings.ischemiaAlertThresholdHours;
+
+            renderGDriveSettingsUI();
 
             // Form Submit
             document.getElementById('settings-profile-form').addEventListener('submit', (e) => {
@@ -382,6 +500,46 @@
                 showToast('Laboratory configuration saved!', 'success');
             });
 
+            // Google Drive Handlers
+            document.getElementById('set-gdrive-url').addEventListener('change', (e) => {
+                SpecimenStore.saveDriveConfig({ webhookUrl: e.target.value.trim() });
+            });
+
+            document.getElementById('set-gdrive-autosync').addEventListener('change', (e) => {
+                SpecimenStore.saveDriveConfig({ autoSync: e.target.checked });
+                showToast(`Auto-backup ${e.target.checked ? 'enabled' : 'disabled'}.`, 'info');
+            });
+
+            document.getElementById('btn-settings-test-gdrive').addEventListener('click', async () => {
+                const url = document.getElementById('set-gdrive-url').value.trim();
+                if (!url) {
+                    showToast('Please enter a Web App URL first.', 'error');
+                    return;
+                }
+                showToast('Testing Google Drive connection...', 'info');
+                const res = await SpecimenStore.testDriveConnection(url);
+                if (res.success) {
+                    showToast(`Connection verified! Target Account: ${res.account || 'Google Drive'}`, 'success');
+                } else {
+                    showToast(`Connection failed: ${res.error}`, 'error');
+                }
+                renderGDriveSettingsUI();
+            });
+
+            document.getElementById('btn-settings-sync-gdrive').addEventListener('click', async () => {
+                const url = document.getElementById('set-gdrive-url').value.trim();
+                if (url) SpecimenStore.saveDriveConfig({ webhookUrl: url });
+                await SpecimenStore.syncToGoogleDrive({ manual: true });
+                renderGDriveSettingsUI();
+            });
+
+            document.getElementById('btn-settings-restore-gdrive').addEventListener('click', async () => {
+                if (confirm('Restore all specimens and settings from Google Drive cloud backup?')) {
+                    await SpecimenStore.restoreFromGoogleDrive();
+                    renderGDriveSettingsUI();
+                }
+            });
+
             // Restore JSON File Input
             const restoreInput = document.getElementById('restore-json-input');
             restoreInput.addEventListener('change', (e) => {
@@ -396,6 +554,10 @@
                     });
                 }
             });
+
+            window.addEventListener('pathology_gdrive_config_change', renderGDriveSettingsUI);
+            window.addEventListener('pathology_gdrive_sync_success', renderGDriveSettingsUI);
+            window.addEventListener('pathology_gdrive_sync_error', renderGDriveSettingsUI);
         });
     </script>
 </body>
