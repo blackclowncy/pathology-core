@@ -414,7 +414,7 @@ const SpecimenStore = {
             'Medical History': (item.medicalHistory || []).join('; '),
             'Clinical Remarks': item.remarks || '',
             'Status': item.status || 'Clear',
-            'Registered Date': item.createdAt ? new Date(item.createdAt).toLocaleString() : ''
+            'Registered Date': item.createdAt ? new Date(item.createdAt).toISOString().replace('T', ' ').substring(0, 19) : ''
         }));
 
         if (typeof XLSX !== 'undefined') {

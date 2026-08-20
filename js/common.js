@@ -20,6 +20,29 @@ function getOrganIcon(organ) {
     return ORGAN_ICONS[organ] || 'biotech';
 }
 
+// Date and Time formatting utilities (English)
+function formatDateTime(dateString) {
+    if (!dateString) return '--';
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return dateString.replace('T', ' ');
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
+
+function formatDateOnly(dateString) {
+    if (!dateString) return '--';
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return dateString.split('T')[0];
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 // Relative time formatter
 function formatRelativeTime(dateString) {
     if (!dateString) return 'N/A';
@@ -39,7 +62,7 @@ function formatRelativeTime(dateString) {
         return `${hours}:${minutes} (Today)`;
     }
     if (diffDay === 1) return 'Yesterday';
-    return date.toLocaleDateString();
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 // Toast Notification System
@@ -180,7 +203,7 @@ function openSpecimenModal(specimenId) {
                     </div>
                     <div class="flex flex-col gap-1 p-sm rounded bg-surface-container/30 border border-outline-variant/20">
                         <span class="text-xs text-on-surface-variant uppercase font-semibold">Cold Ischemia Duration</span>
-                        <span class="font-mono-data text-secondary font-bold">${specimen.coldIschemia || 'N/A'} (Clamp: ${specimen.clampTime || '--'}, Collect: ${specimen.collectionTime || '--'})</span>
+                        <span class="font-mono-data text-secondary font-bold">${specimen.coldIschemia || 'N/A'} (Clamp: ${formatDateTime(specimen.clampTime)}, Collect: ${formatDateTime(specimen.collectionTime)})</span>
                     </div>
                 </div>
 
@@ -256,8 +279,9 @@ function printSpecimenLabel(specimenId) {
     const printWin = window.open('', '_blank', 'width=500,height=440');
     printWin.document.write(`
         <!DOCTYPE html>
-        <html>
+        <html lang="en">
         <head>
+            <meta charset="utf-8"/>
             <title>Specimen Label - ${specimen.donorId}</title>
             <style>
                 body { font-family: monospace; padding: 15px; margin: 0; color: #000; }
@@ -277,7 +301,7 @@ function printSpecimenLabel(specimenId) {
                 <div class="row"><strong>TYPE:</strong> <span>${specimen.preservation}</span></div>
                 <div class="row"><strong>LOCATION:</strong> <span>${specimen.location}</span></div>
                 <div class="row"><strong>COLD ISCH:</strong> <span>${specimen.coldIschemia || 'N/A'}</span></div>
-                <div class="row"><strong>DATE:</strong> <span>${new Date(specimen.createdAt).toLocaleDateString()}</span></div>
+                <div class="row"><strong>DATE:</strong> <span>${formatDateOnly(specimen.createdAt)}</span></div>
                 <div class="barcode">||| |||||| |||| ||||| |||</div>
                 <div style="text-align:center; font-size:10px;">${specimen.tid || specimen.id}</div>
             </div>
